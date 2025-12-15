@@ -6,8 +6,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // React frontend domain
-    'allowed_origins' => ['http://localhost:3000'],
+    // React frontend domains (support both port 3000 and 3001)
+    'allowed_origins' => ['http://localhost:3000', 'http://localhost:3001'],
 
     'allowed_origins_patterns' => [],
 
