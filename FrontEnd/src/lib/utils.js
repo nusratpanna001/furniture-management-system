@@ -15,12 +15,23 @@ export function formatCurrency(amount) {
 }
 
 export function formatDate(date, format = 'short') {
+  if (!date) return 'N/A';
+  
   const options = {
     short: { year: 'numeric', month: 'short', day: 'numeric' },
     long: { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' },
   };
 
-  return new Intl.DateTimeFormat('en-US', options[format]).format(new Date(date));
+  try {
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid Date';
+    }
+    return new Intl.DateTimeFormat('en-US', options[format]).format(dateObj);
+  } catch (error) {
+    console.error('Error formatting date:', date, error);
+    return 'Invalid Date';
+  }
 }
 
 export function truncate(str, length = 50) {

@@ -77,7 +77,9 @@ export default function NavBar() {
                 <div className="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center text-white">
                   {user.name[0].toUpperCase()}
                 </div>
-                <span className="hidden md:inline">{hasRole('admin') ? 'Admin' : 'User'}</span>
+                <span className="hidden md:inline capitalize">
+                  {hasRole('admin') ? user.role : user.name}
+                </span>
               </button>
               <Button
                 size="sm"

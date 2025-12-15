@@ -78,12 +78,17 @@ export const api = {
 
   // Orders
   orders: {
-    list: (params) => apiClient.get('/orders', { params }),
-    get: (id) => apiClient.get(`/orders/${id}`),
+    // Admin routes
+    list: (params) => apiClient.get('/admin/orders', { params }),
+    get: (id) => apiClient.get(`/admin/orders/${id}`),
+    updateStatus: (id, status) => apiClient.put(`/admin/orders/${id}/status`, { status }),
+    updatePaymentStatus: (id, payment_status) => apiClient.put(`/admin/orders/${id}/payment-status`, { payment_status }),
+    cancel: (id) => apiClient.post(`/admin/orders/${id}/cancel`),
+    
+    // User routes
     create: (data) => apiClient.post('/orders', data),
-    update: (id, data) => apiClient.put(`/orders/${id}`, data),
-    delete: (id) => apiClient.delete(`/orders/${id}`),
-    updateStatus: (id, status) => apiClient.patch(`/orders/${id}/status`, { status }),
+    getUserOrders: () => apiClient.get('/user/orders'),
+    getUserOrder: (id) => apiClient.get(`/user/orders/${id}`),
   },
 
   // Suppliers
@@ -112,4 +117,4 @@ export const api = {
   },
 };
 
-export default apiClient;
+export default api;

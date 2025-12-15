@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Select from '../components/ui/Select';
 import { useToast } from '../contexts/ToastContext';
-import { mockService } from '../lib/mockData';
+import api from '../lib/apiClient';
 import { ORDER_STATUS } from '../lib/constants';
 
 function OrdersPage() {
@@ -16,7 +16,7 @@ function OrdersPage() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const { success, error } = useToast();
 
   useEffect(() => {
@@ -30,9 +30,20 @@ function OrdersPage() {
   const loadOrders = async () => {
     setLoading(true);
     try {
-      const response = await mockService.orders.list();
-      setOrders(response.data);
+      const response = await api.orders.list({ status: statusFilter });
+      console.log('Orders loaded:', response.data);
+      
+      // Map backend fields to frontend format
+      const ordersData = (response.data.data || response.data).map(order => ({
+        ...order,
+        createdAt: order.created_at,
+        customerName: order.customer_name,
+        customerEmail: order.user?.email || 'N/A',
+      }));
+      
+      setOrders(ordersData);
     } catch (err) {
+      console.error('Failed to load orders:', err);
       error('Failed to load orders');
     } finally {
       setLoading(false);
@@ -42,11 +53,22 @@ function OrdersPage() {
   const applyFilters = () => {
     let filtered = [...orders];
     
-    if (statusFilter) {
+    if (statusFilter && statusFilter !== 'all') {
       filtered = filtered.filter((o) => o.status === statusFilter);
     }
 
     setFilteredOrders(filtered);
+  };
+
+  const handleUpdateStatus = async (orderId, newStatus) => {
+    try {
+      await api.orders.updateStatus(orderId, newStatus);
+      success('Order status updated successfully');
+      loadOrders();
+    } catch (err) {
+      console.error('Failed to update order status:', err);
+      error('Failed to update order status');
+    }
   };
 
   const handleCreate = async (data) => {
@@ -59,7 +81,7 @@ function OrdersPage() {
         items: [],
         createdAt: new Date(),
       };
-      const response = await mockService.orders.create(newOrder);
+      const response = await api.orders.create(newOrder);
       setOrders([...orders, response.data]);
       success('Order created successfully');
       setShowModal(false);
@@ -73,7 +95,7 @@ function OrdersPage() {
   const handleUpdate = async (data) => {
     setLoading(true);
     try {
-      const response = await mockService.orders.update(editingOrder.id, data);
+      const response = await api.orders.updateStatus(editingOrder.id, data.status);
       setOrders(orders.map((o) => (o.id === editingOrder.id ? response.data : o)));
       success('Order updated successfully');
       setShowModal(false);

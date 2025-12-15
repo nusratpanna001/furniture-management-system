@@ -70,7 +70,7 @@ function ProductList({ products, onEdit, onDelete, loading }) {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => onDelete(row)}
+            onClick={() => onDelete(row.id)}
             icon={<Trash2 size={16} />}
             className="text-red-600 hover:bg-red-50"
             aria-label="Delete product"
