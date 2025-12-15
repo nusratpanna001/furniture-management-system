@@ -36,11 +36,14 @@ function ProductsPage() {
   const loadProducts = async () => {
     setLoading(true);
     try {
+      console.log('Loading products from API...');
       const response = await api.products.list();
+      console.log('Products API response:', response);
       setProducts(response.data || []);
+      console.log('Products set to state:', response.data);
     } catch (err) {
-      error('Failed to load products');
       console.error('Failed to load products:', err);
+      error('Failed to load products');
       // Fallback to empty array
       setProducts([]);
     } finally {
@@ -92,6 +95,9 @@ function ProductsPage() {
     size: product.size
   }));
 
+  console.log('Products state:', products);
+  console.log('Mapped allProducts:', allProducts);
+
   const filteredProducts = useMemo(() => {
     let filtered = allProducts.filter(product => {
       // Search filter
@@ -137,7 +143,7 @@ function ProductsPage() {
     });
 
     return filtered;
-  }, [searchTerm, selectedCategory, priceRange, sortBy]);
+  }, [allProducts, searchTerm, selectedCategory, priceRange, sortBy]);
 
   const ProductCard = ({ product }) => (
     <div

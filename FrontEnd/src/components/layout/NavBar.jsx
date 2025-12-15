@@ -6,7 +6,7 @@ import { useCart } from "../../contexts/CartContext";
 import { useState } from "react";
 
 export default function NavBar() {
-    const { user, logout } = useAuth();
+    const { user, logout, hasRole } = useAuth();
     const { cartItems } = useCart();
     const navigate = useNavigate();
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -16,11 +16,25 @@ export default function NavBar() {
       navigate('/login');
     };
 
+    const handleLoginClick = () => {
+      if (user) {
+        // If logged in, go to respective dashboard
+        if (hasRole('admin')) {
+          navigate('/dashboard');
+        } else {
+          navigate('/user-dashboard');
+        }
+      } else {
+        // If not logged in, go to login page
+        navigate('/login');
+      }
+    };
+
     return (
         <header className="px-4 md:px-8 fixed top-0 w-full z-50 bg-white shadow-md">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-3 items-center py-2">
-            <div className="flex items-center">
+            <div className="flex items-center cursor-pointer" onClick={() => navigate('/home')}>
               <img src="img/logo.png" alt="logo" className="w-10 h-10 md:w-12 md:h-12" />
             </div>
 
@@ -32,37 +46,39 @@ export default function NavBar() {
             </nav>
 
             <div className="flex items-center justify-end space-x-2">
-              <Link to="/my-cart" className="relative">
-                <Button size="sm" className="text-xs flex items-center p-2 bg-amber-600 text-white hover:bg-amber-700" aria-label="My Cart">
-                  <ShoppingCart size={16} />
-                  {cartItems.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold min-w-[20px] text-center">
-                      {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-                    </span>
-                  )}
-                </Button>
-              </Link>
+              {!hasRole('admin') && (
+                <Link to="/my-cart" className="relative">
+                  <Button size="sm" className="text-xs flex items-center p-2 bg-amber-600 text-white hover:bg-amber-700" aria-label="My Cart">
+                    <ShoppingCart size={16} />
+                    {cartItems.length > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold min-w-[20px] text-center">
+                        {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+              )}
               {/* <Link to="/login">
                 <Button size="sm" className="text-xs px-3 py-1">Login</Button>
               </Link> */}
               {!user ? (
-            <Link
-              to="/login"
-              className="bg-amber-600 text-white px-4 py-2 rounded-lg font-medium"
+            <button
+              onClick={handleLoginClick}
+              className="bg-amber-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-amber-700"
             >
               Login
-            </Link>
+            </button>
           ) : (
             <div className="flex items-center gap-2">
-              <Link
-                to="/user-dashboard"
+              <button
+                onClick={handleLoginClick}
                 className="flex items-center gap-2 px-3 py-2 bg-amber-50 hover:bg-amber-100 rounded-lg text-amber-700 font-medium"
               >
                 <div className="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center text-white">
                   {user.name[0].toUpperCase()}
                 </div>
-                <span className="hidden md:inline">User</span>
-              </Link>
+                <span className="hidden md:inline">{hasRole('admin') ? 'Admin' : 'User'}</span>
+              </button>
               <Button
                 size="sm"
                 className="bg-amber-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-1 hover:bg-amber-700"

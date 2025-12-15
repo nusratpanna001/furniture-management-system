@@ -56,16 +56,18 @@ function AdminProductsPage() {
               <h2 className="text-lg font-semibold mb-4">Add Product</h2>
               <ProductForm
                 onSubmit={async (formData) => {
+                  console.log('Submitting product data:', formData);
                   setLoading(true);
                   try {
                     const response = await api.products.create(formData);
+                    console.log('Product created successfully:', response);
                     setProducts(prev => [...prev, response.data]);
                     setShowModal(false);
                     success('Product created successfully!');
                     await loadProducts(); // Refresh the list
                   } catch (err) {
-                    error('Failed to create product');
-                    console.error('Failed to create product:', err);
+                    console.error('Product creation error:', err);
+                    error(err.message || 'Failed to create product');
                   } finally {
                     setLoading(false);
                   }

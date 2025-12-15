@@ -70,7 +70,7 @@ function Sidebar({ isOpen, onClose }) {
       >
         {/* Logo & Close Button */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-800">
-          <Link to={isUserDashboard ? '/' : '/dashboard'} className="flex items-center gap-3" onClick={onClose}>
+          <Link to="/home" className="flex items-center gap-3" onClick={onClose}>
             <img src={LOGO_URL} alt="LuxeHome" className="w-10 h-10" />
             <div>
               <h1 className="text-xl font-bold text-amber-400">{isUserDashboard ? 'My Account' : 'LuxeHome'}</h1>

@@ -13,8 +13,10 @@ apiClient.interceptors.request.use(
   (config) => {
     // Add auth token if exists
     const token = localStorage.getItem('auth_token');
+    console.log('API Request to:', config.url, 'Token exists:', !!token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('Authorization header added');
     }
     return config;
   },

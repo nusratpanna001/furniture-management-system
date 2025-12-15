@@ -33,8 +33,12 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || "Login failed");
       }
 
+      // Save user and token
+      console.log('Login successful, saving token:', data.token);
       setUser(data.user);
       localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("auth_token", data.token);
+      console.log('Token saved to localStorage');
 
       return data;
     } catch (err) {
@@ -45,6 +49,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("auth_token");
   };
 
   const hasRole = (role) => {
