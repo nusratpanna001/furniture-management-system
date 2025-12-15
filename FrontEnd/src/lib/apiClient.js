@@ -66,9 +66,12 @@ export const api = {
   products: {
     list: (params) => apiClient.get('/products', { params }),
     get: (id) => apiClient.get(`/products/${id}`),
-    create: (data) => apiClient.post('/products', data),
-    update: (id, data) => apiClient.put(`/products/${id}`, data),
-    delete: (id) => apiClient.delete(`/products/${id}`),
+    create: (data) => apiClient.post('/admin/products', data),
+    update: (id, data) => apiClient.put(`/admin/products/${id}`, data),
+    delete: (id) => apiClient.delete(`/admin/products/${id}`),
+    getByCategory: (category) => apiClient.get(`/products/category/${category}`),
+    getFeatured: () => apiClient.get('/products/featured/list'),
+    updateStock: (id, stock) => apiClient.put(`/admin/products/${id}/stock`, { stock }),
   },
 
   // Orders

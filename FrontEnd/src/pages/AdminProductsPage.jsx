@@ -1,20 +1,31 @@
 import { useEffect, useState } from 'react';
 import ProductList from '../components/product/ProductList';
-import { mockService } from '../lib/mockData';
+import { api } from '../lib/apiClient';
 import ProductForm from '../components/product/ProductForm';
+import { useToast } from '../contexts/ToastContext';
 
 function AdminProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const { success, error } = useToast();
 
   useEffect(() => {
-    setLoading(true);
-    mockService.products.list().then(res => {
-      setProducts(res.data);
-      setLoading(false);
-    });
+    loadProducts();
   }, []);
+
+  const loadProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await api.products.list();
+      setProducts(response.data || []);
+    } catch (err) {
+      error('Failed to load products');
+      console.error('Failed to load products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -44,9 +55,20 @@ function AdminProductsPage() {
             <div className="pt-6">
               <h2 className="text-lg font-semibold mb-4">Add Product</h2>
               <ProductForm
-                onSubmit={form => {
-                  setProducts(prev => [...prev, form]);
-                  setShowModal(false);
+                onSubmit={async (formData) => {
+                  setLoading(true);
+                  try {
+                    const response = await api.products.create(formData);
+                    setProducts(prev => [...prev, response.data]);
+                    setShowModal(false);
+                    success('Product created successfully!');
+                    await loadProducts(); // Refresh the list
+                  } catch (err) {
+                    error('Failed to create product');
+                    console.error('Failed to create product:', err);
+                  } finally {
+                    setLoading(false);
+                  }
                 }}
                 onCancel={() => setShowModal(false)}
               />

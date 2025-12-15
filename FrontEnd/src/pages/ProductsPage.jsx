@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, Filter, Grid, List, ShoppingCart, Heart, Star } from 'lucide-react';
@@ -9,6 +9,8 @@ import Footer from '../components/layout/Footer';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import NavBar from '../components/layout/NavBar';
+import { api } from '../lib/apiClient';
+import { useToast } from '../contexts/ToastContext';
 
 function usdToBdt(usd) {
   const rate = 110; // Example: 1 USD = 110 BDT
@@ -22,7 +24,29 @@ function ProductsPage() {
   const [priceRange, setPriceRange] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [viewMode, setViewMode] = useState('grid');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { error } = useToast();
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await api.products.list();
+      setProducts(response.data || []);
+    } catch (err) {
+      error('Failed to load products');
+      console.error('Failed to load products:', err);
+      // Fallback to empty array
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -52,130 +76,21 @@ function ProductsPage() {
     { value: 'rating', label: 'Highest Rated' }
   ];
 
-  const allProducts = [
-    {
-      id: 1,
-      name: 'Classic Wooden Dining Set',
-      price: 26949,
-      originalPrice: 299.99,
-      category: 'chair',   
-      rating: 4.8,
-      reviews: 124,
-      image: 'img/almirah.jpeg',
-      description: 'Luxurious velvet accent chair with platinum finish, perfect for modern living rooms.',
-      inStock: true,
-      featured: true
-    },
-    // {
-    //   id: 2,
-    //   name: 'Velvet Boucle Accent Chair',
-    //   price: 344.99,
-    //   category: 'chair',
-    //   rating: 4.9,
-    //   reviews: 89,
-    //   image: 'img/Velvet Boucle Accent Chair.jpeg',
-    //   description: 'Premium boucle fabric chair with ergonomic design and superior comfort.',
-    //   inStock: true,
-    //   featured: false
-    // },
-    {
-      id: 3,
-      name: 'Classic Wooden Dining Set',
-      price: 529.99,
-      category: 'dining',
-      rating: 4.7,
-      reviews: 156,
-      image: 'img/bedside.jpeg',
-      description: 'Handcrafted wooden dining set with 6 chairs, perfect for family gatherings.',
-      inStock: true,
-      featured: true
-    },
-    {
-      id: 4,
-      name: 'Comfort Craft Sofa',
-      price: 699.99,
-      originalPrice: 899.99,
-      category: 'sofa',
-      rating: 4.8,
-      reviews: 203,
-      image: 'img/sofa.jpeg',
-      description: 'Ultra-comfortable 3-seater sofa with premium upholstery and modern design.',
-      inStock: true,
-      featured: true
-    },
-    {
-      id: 5,
-      name: 'Modern Oak Bed Frame',
-      price: 389.99,
-      category: 'bed',
-      rating: 4.6,
-      reviews: 78,
-      image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=600&q=80',
-      description: 'Minimalist oak bed frame with clean lines and sturdy construction.',
-      inStock: true,
-      featured: false
-    },
-    {
-      id: 6,
-      name: 'Industrial Bookshelf',
-      price: 199.99,
-      category: 'shelf',
-      rating: 4.5,
-      reviews: 92,
-      image: 'img/shelf.jpeg',
-      description: 'Industrial-style bookshelf with metal frame and wooden shelves.',
-      inStock: false,
-      featured: false
-    },
-    {
-      id: 7,
-      name: 'Elegant Dressing Table',
-      price: 299.99,
-      category: 'dressing',
-      rating: 4.7,
-      reviews: 67,
-      image: 'img/dressing.jpeg',
-      description: 'Elegant dressing table with LED mirror and multiple storage compartments.',
-      inStock: true,
-      featured: false
-    },
-    {
-      id: 8,
-      name: 'Spacious Wardrobe',
-      price: 789.99,
-      category: 'almirah',
-      rating: 4.9,
-      reviews: 134,
-      image: 'img/bed.jpeg',
-      description: 'Large 3-door wardrobe with mirror and organized internal storage.',
-      inStock: true,
-      featured: true
-    },
-    {
-      id: 9,
-      name: 'Minimalist Bedside Table',
-      price: 89.99,
-      category: 'bedside',
-      rating: 4.4,
-      reviews: 45,
-      image: 'img/Minimalist Bedside Table.jpeg',
-      description: 'Simple and elegant bedside table with single drawer and open shelf.',
-      inStock: true,
-      featured: false
-    },
-    // {
-    //   id: 9,
-    //   name: 'Wooden Dining Table Set',
-    //   price: 89.99,
-    //   category: 'bedside',
-    //   rating: 4.4,
-    //   reviews: 45,
-    //   image: 'img/WoodenDining.jpeg',
-    //   description: 'Simple and elegant bedside table with single drawer and open shelf.',
-    //   inStock: true,
-    //   featured: false
-    // }
-  ];
+  // Use products from API instead of static data
+  const allProducts = products.map(product => ({
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    category: product.category.toLowerCase(),
+    rating: 4.5, // Default rating since it's not in our DB yet
+    reviews: Math.floor(Math.random() * 200) + 10, // Random reviews for now
+    image: product.image_url || 'img/almirah.jpeg', // Fallback image
+    description: product.description || 'High-quality furniture piece.',
+    inStock: product.stock > 0,
+    stock: product.stock,
+    material: product.material,
+    size: product.size
+  }));
 
   const filteredProducts = useMemo(() => {
     let filtered = allProducts.filter(product => {
@@ -463,7 +378,12 @@ function ProductsPage() {
       {/* Products Grid/List */}
       <section className="py-8 px-6 md:px-10">
         <div className="max-w-6xl mx-auto">
-          {filteredProducts.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
+              <p className="text-gray-500 mt-4">Loading products...</p>
+            </div>
+          ) : filteredProducts.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
               <Button 
