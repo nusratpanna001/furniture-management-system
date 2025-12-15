@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LuxeHome User Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <!-- Navbar -->
+  <nav class="bg-white shadow flex items-center justify-between px-8 py-4">
+    <div class="flex items-center gap-2">
+      <img src="assets/logo.png" class="w-10 h-10">
+      <span class="font-bold text-yellow-700 text-lg">LuxeHome</span>
+    </div>
+    <div>
+      <button class="bg-yellow-700 text-white px-4 py-2 rounded hover:bg-yellow-800">Log Out</button>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto py-8 px-4">
+    <!-- Profile Card -->
+    <section class="flex flex-col md:flex-row gap-8 mb-8">
+      <div class="bg-white shadow rounded-lg p-6 flex flex-col items-center md:w-1/4">
+        <img src="assets/profile-avatar.png" class="w-20 h-20 rounded-full mb-3">
+        <h2 class="font-semibold text-lg"></h2>
+        <span class="text-gray-500 mb-2">Premium Member</span>
+        <a id="editProfileBtn" href="#" class="text-yellow-700 hover:underline mt-3">Edit Profile</a>
+      </div>
+      <!-- User Stats -->
+      <div class="grid grid-cols-2 gap-6 md:w-3/4">
+        <div class="bg-blue-500 text-white rounded-lg p-4 text-center">
+          <div class="font-bold text-xl">3</div>
+          <div>Active Orders</div>
+        </div>
+        <div class="bg-emerald-500 text-white rounded-lg p-4 text-center">
+          <div class="font-bold text-xl">750</div>
+          <div>Loyalty Points</div>
+        </div>
+        <div class="bg-amber-500 text-white rounded-lg p-4 text-center">
+          <div class="font-bold text-xl">6</div>
+          <div>Saved Products</div>
+        </div>
+        <div class="bg-violet-500 text-white rounded-lg p-4 text-center">
+          <div class="font-bold text-xl">2</div>
+          <div>Available Coupons</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Orders Table -->
+    <section class="bg-white rounded-lg shadow p-6 mb-8">
+      <h3 class="font-bold text-xl mb-4">Recent Orders</h3>
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="p-3">Order ID</th>
+              <th class="p-3">Date</th>
+              <th class="p-3">Product</th>
+              <th class="p-3">Total</th>
+              <th class="p-3">Status</th>
+              <th class="p-3">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="p-3">#6438</td>
+              <td class="p-3">27 Oct 2025</td>
+              <td class="p-3">Classic Dining Set</td>
+              <td class="p-3">$529.99</td>
+              <td class="p-3 text-yellow-700">In Transit</td>
+              <td class="p-3">
+                <button class="track-btn bg-yellow-700 text-white px-3 py-1 rounded text-xs hover:bg-yellow-800" data-order="6438">Track</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3">#6437</td>
+              <td class="p-3">22 Oct 2025</td>
+              <td class="p-3">Platinum Velvet Chair</td>
+              <td class="p-3">$244.99</td>
+              <td class="p-3 text-green-600">Delivered</td>
+              <td class="p-3">
+                <button class="view-btn bg-gray-900 text-white px-3 py-1 rounded text-xs hover:bg-yellow-700" data-order="6437">View</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Modal Popup for Order Tracking -->
+    <div id="orderModal" class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-40 z-50 hidden">
+      <div class="bg-white p-8 rounded-lg shadow-lg text-center max-w-md mx-auto">
+        <h4 id="modalTitle" class="text-xl font-bold mb-3"></h4>
+        <p id="modalText" class="mb-5"></p>
+        <button id="closeModalBtn" class="mt-2 bg-yellow-700 px-4 py-2 text-white rounded hover:bg-yellow-800">Close</button>
+      </div>
+    </div>
+
+    <!-- Saved Products (Collapsible) -->
+    <section class="bg-white rounded-lg shadow p-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-xl">Saved Products</h3>
+        <h3>Nusrat</h3>
+        <button id="toggleSaved" class="bg-yellow-700 text-white px-4 py-2 rounded hover:bg-yellow-800">Show/Hide</button>
+      </div>
+      <div id="savedProductsList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+        <div class="bg-gray-50 p-3 rounded shadow flex flex-col items-center">
+          <img src="assets/sofa.jpeg" class="w-16 h-16 object-cover rounded">
+          <span class="mt-2">Comfort Craft Sofa</span>
+          <button class="mt-3 buy-btn bg-yellow-700 text-white px-3 py-1 rounded hover:bg-yellow-800">Buy Now</button>
+        </div>
+        <div class="bg-gray-50 p-3 rounded shadow flex flex-col items-center">
+          <img src="assets/dining set.jpeg" class="w-16 h-16 object-cover rounded">
+          <span class="mt-2">Classic Dining Set</span>
+          <button class="mt-3 buy-btn bg-yellow-700 text-white px-3 py-1 rounded hover:bg-yellow-800">Buy Now</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Help / Contact -->
+    <section class="bg-white rounded-lg shadow p-6">
+      <h3 class="font-bold text-xl mb-4">Need Help?</h3>
+      <div class="flex gap-6 items-center">
+        <button id="contactBtn" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-800">Contact Support</button>
+        <a href="#" class="text-yellow-700 hover:underline">How to Track Orders?</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- JS Interactivity -->
+  <script>
+    // Edit profile popup
+    document.getElementById('editProfileBtn').onclick = function(e){
+      e.preventDefault();
+      alert('This will open the profile editing panel!');
+    };
+
+    // Order modal logic
+    const orderModal = document.getElementById('orderModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalText = document.getElementById('modalText');
+    document.getElementById('closeModalBtn').onclick = function(){
+      orderModal.classList.add('hidden');
+    };
+    document.querySelectorAll('.track-btn, .view-btn').forEach(btn => {
+      btn.onclick = function() {
+        orderModal.classList.remove('hidden');
+        modalTitle.innerText = btn.classList.contains('track-btn') ? 'Track Order #' + btn.dataset.order : 'Order Details #' + btn.dataset.order;
+        modalText.innerText = btn.classList.contains('track-btn') 
+          ? 'Order #' + btn.dataset.order + ' is currently in transit. More detailed tracking can be implemented here.'
+          : 'Order delivered. Details and invoice download will go here.'; 
+      };
+    });
+
+    // Collapsible saved products
+    const savedList = document.getElementById('savedProductsList');
+    document.getElementById('toggleSaved').onclick = function(){
+      savedList.classList.toggle('hidden');
+    };
+
+    // Buy now button feedback
+    document.querySelectorAll('.buy-btn').forEach(btn => {
+      btn.onclick = function() {
+        alert('Proceeding to checkout for ' + btn.previousElementSibling.innerText);
+      };
+    });
+
+    // Contact support
+    document.getElementById('contactBtn').onclick = function(){
+      alert('Redirecting to support chat or contact page...');
+    };
+  </script>
+</body>
+</html>
