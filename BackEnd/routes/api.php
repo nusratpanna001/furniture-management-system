@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\OrderController;
 
 // Public Routes
 Route::post('/register', [UsersController::class, 'register']);
@@ -37,7 +38,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/admin/products/{id}', [ProductController::class, 'update']);
         Route::delete('/admin/products/{id}', [ProductController::class, 'destroy']);
         Route::put('/admin/products/{id}/stock', [ProductController::class, 'updateStock']);
+        
+        // Admin Order Management Routes
+        Route::get('/admin/orders', [OrderController::class, 'index']);
+        Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::delete('/admin/orders/{id}', [OrderController::class, 'destroy']);
     });
+
+    // User Order Routes (authenticated users can manage their own orders)
+    Route::get('/my-orders', [OrderController::class, 'myOrders']);
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::put('/orders/{id}', [OrderController::class, 'update']);
 
     // Example: User-only API route
     Route::middleware('role:user')->group(function () {
