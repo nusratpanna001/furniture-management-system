@@ -8,10 +8,8 @@ export function cn(...inputs) {
 }
 
 export function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
+  const bdtAmount = Math.round(amount * 110);
+  return '৳' + bdtAmount.toLocaleString('en-US');
 }
 
 export function formatDate(date, format = 'short') {

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, Filter, Grid, List, ShoppingCart, Heart, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LOGO_URL } from '../lib/constants';
@@ -19,19 +19,29 @@ function usdToBdt(usd) {
 
 function ProductsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const categoryFromUrl = searchParams.get('category') || 'all';
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
   const [priceRange, setPriceRange] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [viewMode, setViewMode] = useState('grid');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
-  const { error } = useToast();
+  const { error, success } = useToast();
 
   useEffect(() => {
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams]);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -80,20 +90,33 @@ function ProductsPage() {
   ];
 
   // Use products from API instead of static data
-  const allProducts = products.map(product => ({
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    category: product.category.toLowerCase(),
-    rating: 4.5, // Default rating since it's not in our DB yet
-    reviews: Math.floor(Math.random() * 200) + 10, // Random reviews for now
-    image: product.image_url || 'img/almirah.jpeg', // Fallback image
-    description: product.description || 'High-quality furniture piece.',
-    inStock: product.stock > 0,
-    stock: product.stock,
-    material: product.material,
-    size: product.size
-  }));
+  const allProducts = products.map(product => {
+    const backendUrl = 'http://127.0.0.1:8000';
+    let imageUrl = 'img/almirah.jpeg'; // Fallback
+    
+    if (product.image_url) {
+      if (product.image_url.startsWith('http')) {
+        imageUrl = product.image_url;
+      } else {
+        imageUrl = `${backendUrl}/${product.image_url}`;
+      }
+    }
+    
+    return {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      category: product.category.toLowerCase(),
+      rating: 4.5, // Default rating since it's not in our DB yet
+      reviews: Math.floor(Math.random() * 200) + 10, // Random reviews for now
+      image: imageUrl,
+      description: product.description || 'High-quality furniture piece.',
+      inStock: product.stock > 0,
+      stock: product.stock,
+      material: product.material,
+      size: product.size
+    };
+  });
 
   console.log('Products state:', products);
   console.log('Mapped allProducts:', allProducts);
@@ -155,6 +178,9 @@ function ProductsPage() {
           src={product.image} 
           alt={product.name}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+          }}
         />
         {!product.inStock && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -211,6 +237,7 @@ function ProductsPage() {
             onClick={(e) => {
               e.stopPropagation();
               addToCart(product);
+              success('Added to cart successfully!');
             }}
           >
             <ShoppingCart size={16} className="mr-1" />
@@ -228,6 +255,9 @@ function ProductsPage() {
           src={product.image} 
           alt={product.name}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+          }}
         />
         {!product.inStock && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -268,7 +298,10 @@ function ProductsPage() {
             size="sm"
             disabled={!product.inStock}
             className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800"
-            onClick={() => addToCart(product)}
+            onClick={() => {
+              addToCart(product);
+              success('Added to cart successfully!');
+            }}
           >
             <ShoppingCart size={16} className="mr-1" />
             {product.inStock ? 'Add to Cart' : 'Sold Out'}

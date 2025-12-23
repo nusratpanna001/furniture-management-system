@@ -38,22 +38,26 @@ function AboutUsPage() {
     {
       icon: <Heart className="w-8 h-8 text-amber-700" />,
       title: 'Passion for Excellence',
-      description: 'We are passionate about creating furniture that combines beauty, comfort, and functionality in every piece.'
+      description: 'We are passionate about creating furniture that combines beauty, comfort, and functionality in every piece.',
+      link: '/products'
     },
     {
       icon: <Award className="w-8 h-8 text-amber-700" />,
       title: 'Premium Quality',
-      description: 'Every product is crafted with the finest materials and attention to detail, ensuring long-lasting quality.'
+      description: 'Every product is crafted with the finest materials and attention to detail, ensuring long-lasting quality.',
+      link: '/products'
     },
     {
       icon: <Users className="w-8 h-8 text-amber-700" />,
       title: 'Customer First',
-      description: 'Our customers are at the heart of everything we do. We strive to exceed expectations in every interaction.'
+      description: 'Our customers are at the heart of everything we do. We strive to exceed expectations in every interaction.',
+      link: '/contact-us'
     },
     {
       icon: <Target className="w-8 h-8 text-amber-700" />,
       title: 'Sustainable Future',
-      description: 'We are committed to sustainable practices and environmentally responsible furniture manufacturing.'
+      description: 'We are committed to sustainable practices and environmentally responsible furniture manufacturing.',
+      link: '/about-us'
     }
   ];
 
@@ -142,13 +146,17 @@ function AboutUsPage() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
-              <div key={index} className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                <div className="flex justify-center mb-4">
+              <Link 
+                key={index} 
+                to={value.link}
+                className="bg-white p-8 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group"
+              >
+                <div className="flex justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                   {value.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{value.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-amber-700 transition-colors">{value.title}</h3>
                 <p className="text-gray-600 leading-relaxed">{value.description}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

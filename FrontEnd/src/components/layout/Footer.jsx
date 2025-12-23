@@ -33,8 +33,24 @@ function Footer() {
         <div>
           <h5 className="font-bold mb-3 text-lg">Contact Us</h5>
           <div className="space-y-2 text-gray-600">
-            <p>📞 +880-1234-567890</p>
-            <p>📧 support@luxehome.com</p>
+            <p>
+              <a 
+                href="tel:+8801234567890" 
+                className="hover:text-amber-700 transition-colors underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-amber-700 rounded"
+                aria-label="Call LuxeHome"
+              >
+                📞 +880-1234-567890
+              </a>
+            </p>
+            <p>
+              <a 
+                href="mailto:support@luxehome.com" 
+                className="hover:text-amber-700 transition-colors underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-amber-700 rounded"
+                aria-label="Email LuxeHome support"
+              >
+                📧 support@luxehome.com
+              </a>
+            </p>
           </div>
           <div className="flex gap-4 mt-4">
             <a href="#" className="text-gray-600 hover:text-amber-700 transition-colors">

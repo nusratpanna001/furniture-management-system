@@ -9,6 +9,7 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import { mockService } from '../lib/mockData';
+import { api } from '../lib/apiClient';
 import { formatCurrency } from '../lib/utils';
 import { CATEGORIES } from '../lib/constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,8 +31,19 @@ function DashboardPage() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const response = await mockService.reports.dashboard();
-      setDashboardData(response.data);
+      // Try backend API first
+      try {
+        const res = await api.reports.dashboard();
+        // api client returns data directly via interceptor
+        const payload = res?.data ?? res;
+        setDashboardData(payload);
+        console.log('Dashboard data loaded from backend:', payload);
+      } catch (apiErr) {
+        // Fallback to mock data if backend fails
+        console.warn('Backend API failed, using mock data:', apiErr);
+        const response = await mockService.reports.dashboard();
+        setDashboardData(response.data);
+      }
     } catch (err) {
       console.error('Failed to load dashboard data', err);
     } finally {
@@ -192,16 +204,22 @@ function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Products Table */}
+      {/* Top Selling Products and Low Stock Alert stacked */}
+      <div className="space-y-6">
         <Card title="Top Selling Products">
           <Table columns={topProductsColumns} data={dashboardData?.topProducts || []} />
         </Card>
-
-        {/* Low Stock Alert */}
+        
+      </div>
+        {/* <Card title="Low Stock Alert">
+          <Table columns={lowStockColumns} data={dashboardData?.lowStockProducts || []} />
+        </Card> */}
+      
+      <div className="space-y-6">
         <Card title="Low Stock Alert">
           <Table columns={lowStockColumns} data={dashboardData?.lowStockProducts || []} />
         </Card>
+
       </div>
     </div>
   );

@@ -1,18 +1,22 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, ShoppingCart, Search, LogOut } from 'lucide-react';
 import { LOGO_URL } from '../lib/constants';
 import Footer from '../components/layout/Footer';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
+import { useToast } from '../contexts/ToastContext';
 import NavBar from '../components/layout/NavBar';
+import { api } from '../lib/apiClient';
 
 function LandingPage() {
   const productContainerRef = useRef(null);
-
   const { user, logout } = useAuth();
-    const navigate = useNavigate();
-    const [showUserMenu, setShowUserMenu] = useState(false);
+  const { addToCart } = useCart();
+  const { success } = useToast();
+  const navigate = useNavigate();
+  const [showUserMenu, setShowUserMenu] = useState(false);
   
     const handleLogout = () => {
       logout();
@@ -26,47 +30,66 @@ function LandingPage() {
     }
   };
 
-  const categories = [
-    { name: 'Bed', image: 'img/bed.jpeg' },
-    { name: 'Shelf', image: 'img/shelf.jpeg' },
-    { name: 'Dressing Table', image: 'img/dressing.jpeg' },
-    { name: 'Almirah', image: 'img/almirah.jpeg' },
-    { name: 'Dining Set', image: 'img/dining set.jpeg' },
-    { name: 'Chair', image: 'img/chair.jpeg' },
-    { name: 'Sofa', image: 'img/sofa.jpeg' },
-    { name: 'Bed Side Table', image: 'img/bedside.jpeg' },
-    { name: 'Kids', image: 'img/kids.jpeg' },
-    { name: 'Wooden sofa cum Divan', image: 'img/wooden sofa cum divan' },
-  ];
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    api.categories.list()
+      .then(res => {
+        const categoriesData = res.data || [];
+        setCategories(categoriesData);
+      })
+      .catch((err) => {
+        console.error('Failed to load categories:', err);
+        // fallback to default static categories if API fails
+        setCategories([
+          { name: 'Bed', image: 'img/bed.jpeg' },
+          { name: 'Shelf', image: 'img/shelf.jpeg' },
+          { name: 'Dressing Table', image: 'img/dressing.jpeg' },
+          { name: 'Dining Set', image: 'img/dining set.jpeg' },
+          { name: 'Chair', image: 'img/chair.jpeg' },
+          { name: 'Sofa', image: 'img/sofa.jpeg' },
+        ]);
+      });
+  }, []);
 
   const trendingProducts = [
     {
+      id: 't1',
       name: 'Platinum Velvet Accent Chair ',
       price: 244.99,
       image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80'
       ,
     },
     {
+      id: 't2',
       name: 'Velvet Boucle Accent Chair',
       price: 344.99,
       image: 'img/shelf.jpeg',
     },
     {
+      id: 't3',
       name: 'Shelf',
       price: 529.99,
       image: 'img/shelf.jpeg',
     },
     {
+      id: 't4',
       name: 'Comfort Craft Sofa',
       price: 699.99,
       image: 'img/sofa.jpeg',
     },
     {
+      id: 't5',
       name: 'Modern Dining Table Set',
       price: 789.99,
       image: 'img/dining set.jpeg',
     },
   ];
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    success(`${product.name} added to cart!`);
+  };
 
   return (
     <div className="bg-white text-gray-800 font-sans">
@@ -105,12 +128,35 @@ function LandingPage() {
       <section className="py-12 md:py-16 text-center px-4 md:px-8">
         <h3 className="text-2xl md:text-3xl font-semibold mb-8 md:mb-10">Categories</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-          {categories.map((category, index) => (
-            <div key={index} className="bg-white shadow-md rounded-lg overflow-hidden w-full">
-              <img src={category.image} className="w-full h-40 md:h-48 object-cover" alt={category.name} />
-              <h4 className="py-3 text-sm md:text-lg font-semibold">{category.name}</h4>
-            </div>
-          ))}
+          {categories.map((category, index) => {
+            const backendUrl = 'http://127.0.0.1:8000';
+            let imageSrc = category.image || 'img/bed.jpeg';
+            
+            // If image doesn't start with http, prepend backend URL
+            if (imageSrc && !imageSrc.startsWith('http') && !imageSrc.startsWith('img/')) {
+              imageSrc = `${backendUrl}/${imageSrc}`;
+            }
+            
+            return (
+              <a
+                key={category.id || index}
+                href={`/products?category=${encodeURIComponent(category.name.toLowerCase().replace(/ /g, ''))}`}
+                className="group block bg-white shadow-md rounded-lg overflow-hidden w-full border-2 border-transparent hover:border-amber-700 focus:border-amber-700 transition-all duration-200 cursor-pointer focus:outline-none"
+                tabIndex={0}
+                aria-label={`View all ${category.name}`}
+              >
+                <img
+                  src={imageSrc}
+                  className="w-full h-40 md:h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  alt={category.name}
+                  onError={(e) => {
+                    e.target.src = 'img/bed.jpeg';
+                  }}
+                />
+                <h4 className="py-3 text-sm md:text-lg font-semibold group-hover:text-amber-700 transition-colors">{category.name}</h4>
+              </a>
+            );
+          })}
         </div>
       </section>
 
@@ -152,8 +198,12 @@ function LandingPage() {
               <img src={product.image} className="w-full h-48 md:h-52 object-cover" alt={product.name} />
               <div className="p-5">
                 <h4 className="font-semibold text-base md:text-lg mb-2 line-clamp-2">{product.name}</h4>
-                <p className="text-gray-600 text-lg font-bold mb-3">${product.price}</p>
-                <Button size="sm" className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+                <p className="text-gray-600 text-lg font-bold mb-3">৳{Math.round(product.price * 110)}</p>
+                <Button 
+                  size="sm" 
+                  onClick={() => handleAddToCart(product)}
+                  className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+                >
                   <ShoppingCart size={16} />
                   Add to Cart
                 </Button>
@@ -171,34 +221,34 @@ function LandingPage() {
           <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-4">Why Choose LuxeHome?</h2>
           <p className="text-center text-gray-600 mb-12 text-lg">We are committed to providing exceptional furniture and unparalleled service to make your home truly luxurious.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center">
-              <span className="mb-6 text-amber-700">
+            <Link to="/products" className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+              <span className="mb-6 text-amber-700 group-hover:scale-110 transition-transform duration-300">
                 <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 17v-1a5 5 0 00-10 0v1"/><circle cx="12" cy="7" r="4"/></svg>
               </span>
-              <h3 className="font-bold text-xl mb-2">Premium Quality</h3>
+              <h3 className="font-bold text-xl mb-2 group-hover:text-amber-700 transition-colors">Premium Quality</h3>
               <p className="text-gray-600">Handcrafted furniture made with the finest materials and attention to detail.</p>
-            </div>
-            <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center">
-              <span className="mb-6 text-amber-700">
+            </Link>
+            <Link to="/products" className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+              <span className="mb-6 text-amber-700 group-hover:scale-110 transition-transform duration-300">
                 <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 13h2l1 9h12l1-9h2"/><path d="M5 13V7a2 2 0 012-2h10a2 2 0 012 2v6"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
               </span>
-              <h3 className="font-bold text-xl mb-2">Free Delivery</h3>
+              <h3 className="font-bold text-xl mb-2 group-hover:text-amber-700 transition-colors">Free Delivery</h3>
               <p className="text-gray-600">Complimentary delivery service within 50 miles of our showroom location.</p>
-            </div>
-            <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center">
-              <span className="mb-6 text-amber-700">
+            </Link>
+            <Link to="/products" className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+              <span className="mb-6 text-amber-700 group-hover:scale-110 transition-transform duration-300">
                 <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 17v-5"/><path d="M12 7h.01"/><circle cx="12" cy="12" r="10"/></svg>
               </span>
-              <h3 className="font-bold text-xl mb-2">Quality Guarantee</h3>
+              <h3 className="font-bold text-xl mb-2 group-hover:text-amber-700 transition-colors">Quality Guarantee</h3>
               <p className="text-gray-600">All our products come with comprehensive warranty and quality assurance.</p>
-            </div>
-            <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center">
-              <span className="mb-6 text-amber-700">
+            </Link>
+            <Link to="/contact-us" className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+              <span className="mb-6 text-amber-700 group-hover:scale-110 transition-transform duration-300">
                 <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 15v-2a4 4 0 018 0v2"/><path d="M9 9h.01"/><path d="M15 9h.01"/></svg>
               </span>
-              <h3 className="font-bold text-xl mb-2">24/7 Support</h3>
+              <h3 className="font-bold text-xl mb-2 group-hover:text-amber-700 transition-colors">24/7 Support</h3>
               <p className="text-gray-600">Round-the-clock customer service to assist with all your furniture needs.</p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Menu, Search, Bell, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 import { useNavigate, Link } from 'react-router-dom';
 
 function Topbar({ onMenuClick }) {
   const { user, logout, hasRole } = useAuth();
+  const { cartItems } = useCart();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -20,11 +22,16 @@ function Topbar({ onMenuClick }) {
         {/* Navigation links removed as requested */}
         <div className="flex items-center justify-end space-x-2 ml-auto">
           {!hasRole('admin') && (
-            <Link to="/my-cart">
+            <Link to="/my-cart" className="relative">
               <button className="text-xs flex items-center p-2 bg-amber-600 text-white hover:bg-amber-700 rounded-lg" aria-label="My Cart">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007.6 17h8.8a1 1 0 00.95-.68L21 13M7 13V6h13" />
                 </svg>
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold min-w-[20px] text-center">
+                    {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                  </span>
+                )}
               </button>
             </Link>
           )}

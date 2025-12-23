@@ -12,14 +12,38 @@ function ProductList({ products, onEdit, onDelete, loading }) {
   const columns = [
     {
       header: 'Image',
-      accessor: 'imageUrl',
-      render: (row) => (
-        <img
-          src={row.imageUrl || 'https://via.placeholder.com/100'}
-          alt={row.name}
-          className="w-16 h-16 object-cover rounded"
-        />
-      ),
+      accessor: 'image_url',
+      render: (row) => {
+        const backendUrl = 'http://127.0.0.1:8000';
+        let imageSrc = 'https://via.placeholder.com/100';
+        
+        if (row.image_url) {
+          // If image_url starts with http, use it directly (external URL)
+          if (row.image_url.startsWith('http')) {
+            imageSrc = row.image_url;
+          } else {
+            // Otherwise, prepend backend URL
+            imageSrc = `${backendUrl}/${row.image_url}`;
+          }
+        } else if (row.imageUrl) {
+          if (row.imageUrl.startsWith('http')) {
+            imageSrc = row.imageUrl;
+          } else {
+            imageSrc = `${backendUrl}/${row.imageUrl}`;
+          }
+        }
+        
+        return (
+          <img
+            src={imageSrc}
+            alt={row.name}
+            className="w-16 h-16 object-cover rounded"
+            onError={(e) => {
+              e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+            }}
+          />
+        );
+      },
     },
     {
       header: 'Name',

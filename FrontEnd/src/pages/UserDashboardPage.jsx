@@ -5,13 +5,23 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import AppLayout from '../components/layout/AppLayout';
 import { useLocation } from 'react-router-dom';
+import { api } from '../lib/apiClient';
+import { useToast } from '../contexts/ToastContext';
 
 function UserDashboardPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const { addToCart } = useCart();
+  const { error, success } = useToast();
   const [activeTab, setActiveTab] = useState('orders');
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [userOrders, setUserOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [loadingWishlist, setLoadingWishlist] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);
   const [profile, setProfile] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -23,35 +33,130 @@ function UserDashboardPage() {
   const [editPhone, setEditPhone] = useState(profile.phone);
   const [editAddress, setEditAddress] = useState(profile.address);
 
-  // Mock data for demonstration
-  const userOrders = [
-    {
-      id: 'ORD-001',
-      date: '2025-11-05',
-      items: 3,
-      total: 1299.97,
-      status: 'delivered',
-      products: ['Modern Sofa Set', 'Coffee Table', 'Accent Chair']
-    },
-    {
-      id: 'ORD-002',
-      date: '2025-11-08',
-      items: 1,
-      total: 599.99,
-      status: 'processing',
-      products: ['Dining Table']
-    },
-    {
-      id: 'ORD-003',
-      date: '2025-11-09',
-      items: 2,
-      total: 899.98,
-      status: 'shipped',
-      products: ['Bookshelf', 'Desk Chair']
-    }
-  ];
+  // Load user orders from backend
+  useEffect(() => {
+    loadOrders();
+    loadWishlist();
+  }, []);
 
-  const wishlistItems = [
+  // Sync profile with user data
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || ''
+      });
+      setEditName(user.name || '');
+      setEditEmail(user.email || '');
+      setEditPhone(user.phone || '');
+      setEditAddress(user.address || '');
+    }
+  }, [user]);
+
+  const loadOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      const response = await api.orders.getUserOrders();
+      const ordersData = (response.data || response).map(order => ({
+        id: order.id,
+        date: order.created_at ? new Date(order.created_at).toISOString().split('T')[0] : 'N/A',
+        items: order.items?.length || 0,
+        total: parseFloat(order.total) || 0,
+        status: order.status,
+        products: order.items?.map(item => item.product?.name || 'Unknown Product') || []
+      }));
+      setUserOrders(ordersData);
+    } catch (err) {
+      console.error('Failed to load orders:', err);
+      error('Failed to load your orders');
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const loadWishlist = async () => {
+    setLoadingWishlist(true);
+    try {
+      const response = await api.wishlist.list();
+      const wishlistData = (response.data || response).map(item => ({
+        id: item.id,
+        product_id: item.product_id,
+        name: item.product?.name || 'Unknown Product',
+        price: parseFloat(item.product?.price) || 0,
+        image: item.product?.image || 'https://via.placeholder.com/400',
+        inStock: item.product?.inStock || false,
+      }));
+      setWishlistItems(wishlistData);
+    } catch (err) {
+      console.error('Failed to load wishlist:', err);
+      error('Failed to load your wishlist');
+    } finally {
+      setLoadingWishlist(false);
+    }
+  };
+
+  const handleRemoveFromWishlist = async (wishlistId) => {
+    try {
+      await api.wishlist.remove(wishlistId);
+      setWishlistItems(wishlistItems.filter(item => item.id !== wishlistId));
+    } catch (err) {
+      console.error('Failed to remove from wishlist:', err);
+      error('Failed to remove item from wishlist');
+    }
+  };
+
+  const handleAddToCart = (item) => {
+    const cartProduct = {
+      id: item.product_id,
+      name: item.name,
+      price: item.price,
+      image: item.image,
+    };
+    addToCart(cartProduct);
+    success(`${item.name} added to cart!`);
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setLoadingProfile(true);
+    
+    try {
+      const profileData = {
+        name: editName,
+        phone: editPhone,
+        address: editAddress,
+      };
+
+      const response = await api.auth.updateProfile(profileData);
+      
+      if (response.status) {
+        // Update local profile state
+        setProfile({
+          name: editName,
+          email: profile.email, // Email doesn't change
+          phone: editPhone,
+          address: editAddress,
+        });
+        
+        // Update user in AuthContext if updateUser function exists
+        if (updateUser && response.user) {
+          updateUser(response.user);
+        }
+        
+        success('Profile updated successfully!');
+        setShowEditProfile(false);
+      }
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      error(err.message || 'Failed to update profile');
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const wishlistItemsOldOld = [
     {
       id: 1,
       name: 'Luxury Velvet Sofa',
@@ -74,11 +179,25 @@ function UserDashboardPage() {
       inStock: false
     }
   ];
+  // Remove this old data - using dynamic wishlistItems from backend now
 
   // Render the user's orders list
   const renderOrders = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-4">My Orders</h2>
+      {loadingOrders ? (
+        <div className="text-center py-8">
+          <p className="text-gray-600">Loading your orders...</p>
+        </div>
+      ) : userOrders.length === 0 ? (
+        <Card className="p-8 text-center">
+          <ShoppingCart size={48} className="mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-600">You haven't placed any orders yet.</p>
+          <Link to="/products">
+            <Button className="mt-4">Start Shopping</Button>
+          </Link>
+        </Card>
+      ) : (
       <div className="space-y-4">
         {userOrders.map((order) => {
           const statusColor =
@@ -106,12 +225,26 @@ function UserDashboardPage() {
           );
         })}
       </div>
+      )}
     </div>
   );
 
   const renderWishlist = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">My Wishlist</h2>
+      {loadingWishlist ? (
+        <div className="text-center py-8">
+          <p className="text-gray-600">Loading your wishlist...</p>
+        </div>
+      ) : wishlistItems.length === 0 ? (
+        <Card className="p-8 text-center">
+          <Heart size={48} className="mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-600">Your wishlist is empty.</p>
+          <Link to="/products">
+            <Button className="mt-4">Browse Products</Button>
+          </Link>
+        </Card>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {wishlistItems.map((item) => (
           <Card key={item.id} className="overflow-hidden">
@@ -127,16 +260,18 @@ function UserDashboardPage() {
                 size="sm" 
                 className="flex-1" 
                 disabled={!item.inStock}
+                onClick={() => handleAddToCart(item)}
               >
                 {item.inStock ? 'Add to Cart' : 'Out of Stock'}
               </Button>
-              <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-50">
+              <Button size="sm" variant="outline" className="text-red-500 border-red-500 hover:bg-red-50" onClick={() => handleRemoveFromWishlist(item.id)}>
                 <Heart size={16} />
               </Button>
             </div>
           </Card>
         ))}
       </div>
+      )}
     </div>
   );
 
@@ -182,30 +317,64 @@ function UserDashboardPage() {
               <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
                 <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
                   <h3 className="text-lg font-bold mb-4">Edit Profile</h3>
-                  <form onSubmit={e => {
-                    e.preventDefault();
-                    setProfile({ name: editName, email: editEmail, phone: editPhone, address: editAddress });
-                    setShowEditProfile(false);
-                  }}>
+                  <form onSubmit={handleUpdateProfile}>
                     <div className="mb-3">
                       <label className="block text-sm font-medium mb-1">Full Name</label>
-                      <input type="text" className="w-full border rounded px-3 py-2" value={editName} onChange={e => setEditName(e.target.value)} />
+                      <input 
+                        type="text" 
+                        className="w-full border rounded px-3 py-2" 
+                        value={editName} 
+                        onChange={e => setEditName(e.target.value)}
+                        required
+                      />
                     </div>
                     <div className="mb-3">
                       <label className="block text-sm font-medium mb-1">Email Address</label>
-                      <input type="email" className="w-full border rounded px-3 py-2" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+                      <input 
+                        type="email" 
+                        className="w-full border rounded px-3 py-2 bg-gray-100" 
+                        value={editEmail} 
+                        disabled
+                        title="Email cannot be changed"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                     </div>
                     <div className="mb-3">
                       <label className="block text-sm font-medium mb-1">Phone Number</label>
-                      <input type="text" className="w-full border rounded px-3 py-2" value={editPhone} onChange={e => setEditPhone(e.target.value)} />
+                      <input 
+                        type="text" 
+                        className="w-full border rounded px-3 py-2" 
+                        value={editPhone} 
+                        onChange={e => setEditPhone(e.target.value)}
+                      />
                     </div>
                     <div className="mb-3">
                       <label className="block text-sm font-medium mb-1">Delivery Address</label>
-                      <input type="text" className="w-full border rounded px-3 py-2" value={editAddress} onChange={e => setEditAddress(e.target.value)} />
+                      <textarea 
+                        className="w-full border rounded px-3 py-2" 
+                        value={editAddress} 
+                        onChange={e => setEditAddress(e.target.value)}
+                        rows="3"
+                      />
                     </div>
                     <div className="flex gap-2 mt-4">
-                      <Button type="submit" size="sm" className="bg-amber-600 text-white">Save</Button>
-                      <Button type="button" size="sm" variant="outline" onClick={() => setShowEditProfile(false)}>Cancel</Button>
+                      <Button 
+                        type="submit" 
+                        size="sm" 
+                        className="bg-amber-600 text-white"
+                        disabled={loadingProfile}
+                      >
+                        {loadingProfile ? 'Saving...' : 'Save'}
+                      </Button>
+                      <Button 
+                        type="button" 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => setShowEditProfile(false)}
+                        disabled={loadingProfile}
+                      >
+                        Cancel
+                      </Button>
                     </div>
                   </form>
                 </div>

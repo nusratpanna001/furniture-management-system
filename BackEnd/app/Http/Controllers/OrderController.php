@@ -246,4 +246,32 @@ class OrderController extends Controller
             'data' => $order,
         ]);
     }
+
+    // Delete order (Admin)
+    public function destroy($id)
+    {
+        $order = Order::findOrFail($id);
+
+        // Restore stock if order wasn't cancelled/delivered
+        if (!in_array($order->status, ['cancelled', 'delivered'])) {
+            foreach ($order->items as $item) {
+                $product = Products::find($item->product_id);
+                if ($product) {
+                    $product->stock += $item->quantity;
+                    $product->save();
+                }
+            }
+        }
+
+        // Delete order items
+        $order->items()->delete();
+        
+        // Delete order
+        $order->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order deleted successfully',
+        ]);
+    }
 }

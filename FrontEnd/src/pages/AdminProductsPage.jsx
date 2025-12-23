@@ -93,20 +93,49 @@ function AdminProductsPage() {
             <div className="pt-6">
               <h2 className="text-lg font-semibold mb-4">{editingProduct ? 'Edit Product' : 'Add Product'}</h2>
               <ProductForm
-                initialData={editingProduct}
+                initialData={editingProduct ? {
+                  name: editingProduct.name,
+                  category: editingProduct.category,
+                  material: editingProduct.material,
+                  size: editingProduct.size,
+                  price: editingProduct.price,
+                  stock: editingProduct.stock,
+                  description: editingProduct.description,
+                  imageUrl: editingProduct.image_url,
+                  image_url: editingProduct.image_url
+                } : null}
                 onSubmit={async (formData) => {
                   console.log('Submitting product data:', formData);
                   setLoading(true);
                   try {
+                    // Create FormData for file upload
+                    const data = new FormData();
+                    data.append('name', formData.name);
+                    data.append('category', formData.category);
+                    data.append('material', formData.material);
+                    data.append('size', formData.size);
+                    data.append('price', parseFloat(formData.price));
+                    data.append('stock', parseInt(formData.stock));
+                    data.append('description', formData.description || '');
+                    
+                    // Add image file if exists, otherwise use URL
+                    if (formData.imageFile) {
+                      data.append('image', formData.imageFile);
+                    } else if (formData.imageUrl) {
+                      data.append('image_url', formData.imageUrl);
+                    }
+                    
+                    console.log('FormData prepared');
+                    
                     if (editingProduct) {
                       // Update existing product
-                      const response = await api.products.update(editingProduct.id, formData);
+                      const response = await api.products.update(editingProduct.id, data);
                       console.log('Product updated successfully:', response);
                       setProducts(prev => prev.map(p => p.id === editingProduct.id ? response.data.data : p));
                       success('Product updated successfully!');
                     } else {
                       // Create new product
-                      const response = await api.products.create(formData);
+                      const response = await api.products.create(data);
                       console.log('Product created successfully:', response);
                       setProducts(prev => [...prev, response.data.data]);
                       success('Product created successfully!');

@@ -6,7 +6,7 @@ import Button from '../components/ui/Button';
 import StatusPill from '../components/order/StatusPill';
 import Table from '../components/ui/Table';
 import { useToast } from '../contexts/ToastContext';
-import { mockService } from '../lib/mockData';
+import api from '../lib/apiClient';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/constants';
 
@@ -24,18 +24,39 @@ function OrderDetailsPage() {
   const loadOrder = async () => {
     setLoading(true);
     try {
-      const response = await mockService.orders.get(id);
-      setOrder(response.data);
+      const response = await api.orders.get(id);
+      const orderData = response.data.data || response.data;
+      
+      // Map backend fields to frontend format
+      const mappedOrder = {
+        ...orderData,
+        createdAt: orderData.created_at,
+        customerName: orderData.customer_name,
+        customerEmail: orderData.user?.email || orderData.customer_email || 'N/A',
+        customerPhone: orderData.customer_phone || orderData.phone || 'N/A',
+        deliveryAddress: orderData.delivery_address || orderData.address || 'N/A',
+        paymentMethod: orderData.payment_method || 'N/A',
+        items: orderData.items || orderData.order_items || [],
+      };
+      
+      setOrder(mappedOrder);
     } catch (err) {
+      console.error('Failed to load order details:', err);
       error('Failed to load order details');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateStatus = (newStatus) => {
-    setOrder({ ...order, status: newStatus });
-    success(`Order status updated to ${newStatus}`);
+  const updateStatus = async (newStatus) => {
+    try {
+      await api.orders.updateStatus(order.id, newStatus);
+      setOrder({ ...order, status: newStatus });
+      success(`Order status updated to ${newStatus}`);
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      error('Failed to update order status');
+    }
   };
 
   const timelineSteps = [
@@ -58,7 +79,7 @@ function OrderDetailsPage() {
   const itemColumns = [
     {
       header: 'Product',
-      render: (row) => <span className="font-medium">{row.productName}</span>,
+      render: (row) => <span className="font-medium">{row.product?.name || row.productName || row.product_name || 'N/A'}</span>,
     },
     {
       header: 'Quantity',
@@ -66,11 +87,15 @@ function OrderDetailsPage() {
     },
     {
       header: 'Unit Price',
-      render: (row) => formatCurrency(row.price),
+      render: (row) => formatCurrency(row.price || row.unit_price || 0),
     },
     {
       header: 'Total',
-      render: (row) => <span className="font-semibold">{formatCurrency(row.price * row.quantity)}</span>,
+      render: (row) => {
+        const price = row.price || row.unit_price || 0;
+        const quantity = row.quantity || 0;
+        return <span className="font-semibold">{formatCurrency(price * quantity)}</span>;
+      },
     },
   ];
 

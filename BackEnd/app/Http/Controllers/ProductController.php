@@ -78,6 +78,7 @@ class ProductController extends Controller
                 'stock' => 'required|integer|min:0',
                 'description' => 'nullable|string|max:1000',
                 'image_url' => 'nullable|string|max:500',
+                'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:4096', // 4MB max
             ]);
 
             if ($validator->fails()) {
@@ -88,7 +89,17 @@ class ProductController extends Controller
                 ], 422);
             }
 
-            $product = Products::create($validator->validated());
+            $data = $validator->validated();
+
+            // Handle file upload
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move(public_path('product'), $imageName);
+                $data['image_url'] = 'product/' . $imageName;
+            }
+
+            $product = Products::create($data);
 
             return response()->json([
                 'success' => true,
@@ -141,6 +152,7 @@ class ProductController extends Controller
                 'stock' => 'sometimes|integer|min:0',
                 'description' => 'nullable|string|max:1000',
                 'image_url' => 'nullable|string|max:500',
+                'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:4096', // 4MB max
                 'is_active' => 'sometimes|boolean',
             ]);
 
@@ -152,7 +164,22 @@ class ProductController extends Controller
                 ], 422);
             }
 
-            $product->update($validator->validated());
+            $data = $validator->validated();
+
+            // Handle file upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($product->image_url && file_exists(public_path($product->image_url))) {
+                    unlink(public_path($product->image_url));
+                }
+
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move(public_path('product'), $imageName);
+                $data['image_url'] = 'product/' . $imageName;
+            }
+
+            $product->update($data);
 
             return response()->json([
                 'success' => true,

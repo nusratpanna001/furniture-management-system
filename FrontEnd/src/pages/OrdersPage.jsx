@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import OrderTable from '../components/order/OrderTable';
 import OrderForm from '../components/order/OrderForm';
 import Modal from '../components/ui/Modal';
@@ -112,7 +112,7 @@ function OrdersPage() {
 
     setLoading(true);
     try {
-      await mockService.orders.delete(order.id);
+      await api.orders.delete(order.id);
       setOrders(orders.filter((o) => o.id !== order.id));
       success('Order deleted successfully');
     } catch (err) {
@@ -138,11 +138,6 @@ function OrdersPage() {
       <Card
         title="Orders Management"
         subtitle="Track and manage customer orders"
-        actions={
-          <Button onClick={() => setShowModal(true)} icon={<Plus size={20} />}>
-            Create Order
-          </Button>
-        }
       />
 
       {/* Filters */}
@@ -202,8 +197,6 @@ function OrdersPage() {
       {/* Order Table */}
       <OrderTable
         orders={filteredOrders}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
         loading={loading}
       />
 

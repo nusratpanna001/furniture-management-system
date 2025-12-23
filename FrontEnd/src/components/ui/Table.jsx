@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils';
 function Table({ columns, data, onRowClick, className }) {
   // Pagination state
   const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
   const totalRows = data.length;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
   const paginatedData = data.slice((page - 1) * rowsPerPage, page * rowsPerPage);

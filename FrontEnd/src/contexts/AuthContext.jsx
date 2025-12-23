@@ -52,6 +52,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("auth_token");
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
+
   const hasRole = (role) => {
     if (!user) return false;
     const roles = Array.isArray(role) ? role : [role];
@@ -60,7 +65,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, isAuthenticated: !!user, hasRole }}
+      value={{ user, login, logout, updateUser, isAuthenticated: !!user, hasRole }}
     >
       {children}
     </AuthContext.Provider>

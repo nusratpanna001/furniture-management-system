@@ -1,4 +1,4 @@
-import { Edit, Trash2, Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Table from '../ui/Table';
 import Button from '../ui/Button';
@@ -6,7 +6,7 @@ import StatusPill from './StatusPill';
 import { usePagination } from '../../hooks/usePagination';
 import { formatCurrency, formatDate } from '../../lib/utils';
 
-function OrderTable({ orders, onEdit, onDelete, loading }) {
+function OrderTable({ orders, loading }) {
   const navigate = useNavigate();
   const { paginatedData, currentPage, totalPages, nextPage, prevPage, goToPage } = usePagination(orders);
 
@@ -52,24 +52,9 @@ function OrderTable({ orders, onEdit, onDelete, loading }) {
             size="sm"
             variant="ghost"
             onClick={() => navigate(`/orders/${row.id}`)}
-            icon={<Eye size={16} />}
-            aria-label="View order"
-          />
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => onEdit(row)}
-            icon={<Edit size={16} />}
-            aria-label="Edit order"
-          />
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => onDelete(row)}
-            icon={<Trash2 size={16} />}
-            className="text-red-600 hover:bg-red-50"
-            aria-label="Delete order"
-          />
+          >
+            View
+          </Button>
         </div>
       ),
     },

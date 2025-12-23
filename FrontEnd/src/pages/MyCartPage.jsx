@@ -6,6 +6,8 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Footer from '../components/layout/Footer';
 import NavBar from '../components/layout/NavBar';
+import { api } from '../lib/apiClient';
+import { useToast } from '../contexts/ToastContext';
 
 function usdToBdt(usd) {
   const rate = 110; // Example: 1 USD = 110 BDT
@@ -13,8 +15,26 @@ function usdToBdt(usd) {
 }
 
 function MyCartPage() {
-  const { cartItems, updateQuantity, removeItem } = useCart();
+  const { cartItems, updateQuantity, removeItem, clearCart } = useCart();
   const navigate = useNavigate();
+  const { success, error } = useToast();
+
+  // Handle adding item to wishlist
+  const handleAddToWishlist = async (product) => {
+    try {
+      await api.wishlist.add(product.id);
+      success(`${product.name} added to wishlist!`);
+    } catch (err) {
+      if (err.status === 409) {
+        error('Product already in wishlist');
+      } else if (err.status === 401) {
+        error('Please login to add items to wishlist');
+      } else {
+        console.error('Failed to add to wishlist:', err);
+        error('Failed to add to wishlist');
+      }
+    }
+  };
 
   // updateQuantity and removeItem now come from context
 
@@ -166,6 +186,7 @@ function MyCartPage() {
                                   <Trash2 size={16} />
                                 </button>
                                 <button
+                                  onClick={() => handleAddToWishlist(item)}
                                   className="p-2 text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
                                   title="Add to wishlist"
                                 >
@@ -196,7 +217,7 @@ function MyCartPage() {
                     </Button>
                   </Link>
                   <Button
-                    onClick={() => setCartItems([])}
+                    onClick={() => clearCart()}
                     variant="outline"
                     className="text-red-600 border-red-600 hover:bg-red-50"
                   >

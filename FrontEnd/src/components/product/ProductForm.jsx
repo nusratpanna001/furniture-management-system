@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Upload, Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 import { productSchema } from '../../lib/formSchemas';
 import { CATEGORIES, MATERIALS, SIZES } from '../../lib/constants';
@@ -9,12 +9,13 @@ import Select from '../ui/Select';
 import Button from '../ui/Button';
 
 function ProductForm({ initialData, onSubmit, onCancel, loading }) {
+  const [imageUrl, setImageUrl] = useState(initialData?.image_url || '');
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState(initialData?.image_url || '');
+  
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(productSchema),
@@ -33,14 +34,42 @@ function ProductForm({ initialData, onSubmit, onCancel, loading }) {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file size (max 4MB)
+      if (file.size > 4 * 1024 * 1024) {
+        alert('File size must be less than 4MB');
+        return;
+      }
+
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        alert('Only JPG, JPEG, PNG, and WebP files are allowed');
+        return;
+      }
+
       setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-      setValue('imageUrl', file.name); // Optionally set imageUrl to file name
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
+  const handleFormSubmit = (data) => {
+    // Include image file in form data
+    const formData = {
+      ...data,
+      imageFile: imageFile,
+      imageUrl: imageUrl || imagePreview
+    };
+    onSubmit(formData);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Input
           label="Product Name"
@@ -97,21 +126,47 @@ function ProductForm({ initialData, onSubmit, onCancel, loading }) {
         />
       </div>
 
-
       <div>
-        <label className="block text-gray-700 font-semibold mb-2 text-sm">Product Image</label>
-        <div className="flex items-center gap-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Product Image
+        </label>
+        <div className="border-2 border-dashed border-gray-300 rounded px-4 py-6 text-center hover:border-amber-500 transition">
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpg,image/jpeg,image/png,image/webp"
+            className="w-full"
             onChange={handleImageChange}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
           />
-          {imagePreview && (
-            <img src={imagePreview} alt="Preview" className="w-16 h-16 object-cover rounded border" />
-          )}
+          <p className="text-xs text-gray-500 mt-2">
+            JPG, JPEG, PNG, WebP (Max 4MB)
+          </p>
         </div>
-        {errors.imageUrl && <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>}
+        {imagePreview && (
+          <div className="mt-3 flex justify-center">
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="max-w-xs max-h-32 rounded border border-gray-300"
+            />
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2 text-sm">
+          Or Image URL (Optional)
+        </label>
+        <Input
+          type="url"
+          placeholder="https://example.com/image.jpg"
+          value={imageUrl}
+          onChange={(e) => {
+            setImageUrl(e.target.value);
+            if (e.target.value) {
+              setImagePreview(e.target.value);
+            }
+          }}
+        />
       </div>
 
       <div>

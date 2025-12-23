@@ -11,25 +11,29 @@ const contactInfo = [
     icon: <Mail size={32} className="text-amber-700 mx-auto" />,
     title: 'Email',
     details: ['info@luxehome.com'],
-    description: 'We reply within 24 hours.'
+    description: 'We reply within 24 hours.',
+    link: 'mailto:info@luxehome.com'
   },
   {
     icon: <Phone size={32} className="text-amber-700 mx-auto" />,
     title: 'Phone',
     details: ['+013-456-7890'],
-    description: 'Mon-Fri, 9am-6pm.'
+    description: 'Mon-Fri, 9am-6pm.',
+    link: 'tel:+0134567890'
   },
   {
     icon: <MapPin size={32} className="text-amber-700 mx-auto" />,
     title: 'Address',
     details: ['123 Furniture St, NY'],
-    description: 'Visit our showroom.'
+    description: 'Visit our showroom.',
+    link: 'https://maps.google.com/?q=123+Furniture+St+NY'
   },
   {
     icon: <Clock size={32} className="text-amber-700 mx-auto" />,
     title: 'Hours',
     details: ['Mon-Sat: 10am-8pm'],
-    description: 'Open for visits.'
+    description: 'Open for visits.',
+    link: '/contact-us'
   }
 ];
 
@@ -91,18 +95,24 @@ function ContactUsPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {contactInfo.map((info, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-center">
-                <div className="flex justify-center mb-4">
+              <a 
+                key={index} 
+                href={info.link}
+                target={info.link.startsWith('http') ? '_blank' : '_self'}
+                rel={info.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 text-center cursor-pointer group"
+              >
+                <div className="flex justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                   {info.icon}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{info.title}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-amber-700 transition-colors">{info.title}</h3>
                 <div className="space-y-1 mb-3">
                   {info.details.map((detail, idx) => (
                     <p key={idx} className="text-gray-700 font-medium">{detail}</p>
                   ))}
                 </div>
                 <p className="text-sm text-gray-600">{info.description}</p>
-              </div>
+              </a>
             ))}
           </div>
         </div>
