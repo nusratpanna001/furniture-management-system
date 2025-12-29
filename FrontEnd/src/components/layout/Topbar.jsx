@@ -16,8 +16,8 @@ function Topbar({ onMenuClick }) {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-3">
-      <div className="flex items-center justify-end py-3 max-w-7xl mx-auto w-full">
+    <header className="bg-white border-b border-gray-200 px-4 py-1">
+      <div className="flex items-center justify-end py-1 max-w-7xl mx-auto w-full">
         {/* Logo removed as requested */}
         {/* Navigation links removed as requested */}
         <div className="flex items-center justify-end space-x-2 ml-auto">
@@ -41,13 +41,13 @@ function Topbar({ onMenuClick }) {
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg"
+                className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-lg"
               >
-                <div className="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center text-white">
+                <div className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white text-sm">
                   {user.name[0].toUpperCase()}
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium capitalize">
+                  <p className="text-xs font-medium capitalize">
                     {hasRole('admin') ? user.role : user.name}
                   </p>
                 </div>

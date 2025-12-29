@@ -10,6 +10,7 @@ import {
   User,
   Heart,
   HelpCircle,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LOGO_URL } from '../../lib/constants';
@@ -25,6 +26,7 @@ const iconMap = {
   User,
   Heart,
   HelpCircle,
+  Settings,
 };
 
 // ✅ Static routes accessible to everyone
@@ -34,6 +36,7 @@ const routes = [
   { path: '/admin-products', name: 'Products', icon: 'Package' },
   { path: '/orders', name: 'Orders', icon: 'ShoppingCart' },
   { path: '/reports', name: 'Reports', icon: 'BarChart3' },
+  { path: '/settings', name: 'Settings', icon: 'Settings' },
 ];
 
 function Sidebar({ isOpen, onClose }) {

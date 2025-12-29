@@ -13,8 +13,7 @@ import { api } from '../lib/apiClient';
 import { useToast } from '../contexts/ToastContext';
 
 function usdToBdt(usd) {
-  const rate = 110; // Example: 1 USD = 110 BDT
-  return Math.round(usd * rate);
+  return Math.round(usd);
 }
 
 function ProductsPage() {
@@ -29,11 +28,13 @@ function ProductsPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [wishlistItems, setWishlistItems] = useState([]);
   const { addToCart } = useCart();
   const { error, success } = useToast();
 
   useEffect(() => {
     loadProducts();
+    loadWishlist();
   }, []);
 
   useEffect(() => {
@@ -61,16 +62,53 @@ function ProductsPage() {
     }
   };
 
+  const loadWishlist = async () => {
+    try {
+      const response = await api.wishlist.list();
+      const wishlistProductIds = (response.data || []).map(item => item.product_id);
+      setWishlistItems(wishlistProductIds);
+    } catch (err) {
+      console.error('Failed to load wishlist:', err);
+      // Silently fail, wishlist is optional
+    }
+  };
+
+  const handleToggleWishlist = async (e, productId) => {
+    e.stopPropagation();
+    
+    const isInWishlist = wishlistItems.includes(productId);
+    
+    try {
+      if (isInWishlist) {
+        // Remove from wishlist
+        await api.wishlist.removeByProduct(productId);
+        setWishlistItems(wishlistItems.filter(id => id !== productId));
+        success('Removed from wishlist');
+      } else {
+        // Add to wishlist
+        await api.wishlist.add(productId);
+        setWishlistItems([...wishlistItems, productId]);
+        success('Added to wishlist');
+      }
+    } catch (err) {
+      console.error('Failed to update wishlist:', err);
+      error('Failed to update wishlist');
+    }
+  };
+
   const categories = [
     { value: 'all', label: 'All Categories' },
     { value: 'bed', label: 'Bed' },
     { value: 'shelf', label: 'Shelf' },
-    { value: 'dressing', label: 'Dressing Table' },
+    { value: 'dressingtable', label: 'Dressing Table' },
     { value: 'almirah', label: 'Almirah' },
-    { value: 'dining', label: 'Dining Set' },
+    { value: 'diningset', label: 'Dining Set' },
     { value: 'chair', label: 'Chair' },
     { value: 'sofa', label: 'Sofa' },
-    { value: 'bedside', label: 'Bed Side Table' }
+    { value: 'bedsidetable', label: 'Bed Side Table' },
+    { value: 'showcase', label: 'Showcase' },
+    { value: 'table', label: 'Table' },
+    { value: 'diningtable', label: 'Dining Table' }
   ];
 
   const priceRanges = [
@@ -106,7 +144,7 @@ function ProductsPage() {
       id: product.id,
       name: product.name,
       price: product.price,
-      category: product.category.toLowerCase(),
+      category: product.category.toLowerCase().replace(/ /g, ''),
       rating: 4.5, // Default rating since it's not in our DB yet
       reviews: Math.floor(Math.random() * 200) + 10, // Random reviews for now
       image: imageUrl,
@@ -168,7 +206,10 @@ function ProductsPage() {
     return filtered;
   }, [allProducts, searchTerm, selectedCategory, priceRange, sortBy]);
 
-  const ProductCard = ({ product }) => (
+  const ProductCard = ({ product }) => {
+    const isInWishlist = wishlistItems.includes(product.id);
+    
+    return (
     <div
       className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer"
       onClick={() => navigate(`/products/${product.id}`)}
@@ -198,8 +239,14 @@ function ProductsPage() {
           </div>
         )}
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button className="bg-white p-2 rounded-full shadow-md hover:shadow-lg">
-            <Heart size={16} className="text-gray-600 hover:text-red-500" />
+          <button 
+            className="bg-white p-2 rounded-full shadow-md hover:shadow-lg"
+            onClick={(e) => handleToggleWishlist(e, product.id)}
+          >
+            <Heart 
+              size={16} 
+              className={isInWishlist ? 'text-red-500 fill-red-500' : 'text-gray-600 hover:text-red-500'} 
+            />
           </button>
         </div>
       </div>
@@ -246,9 +293,13 @@ function ProductsPage() {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
-  const ProductListItem = ({ product }) => (
+  const ProductListItem = ({ product }) => {
+    const isInWishlist = wishlistItems.includes(product.id);
+    
+    return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden flex">
       <div className="relative w-48 h-32 flex-shrink-0">
         <img 
@@ -306,10 +357,23 @@ function ProductsPage() {
             <ShoppingCart size={16} className="mr-1" />
             {product.inStock ? 'Add to Cart' : 'Sold Out'}
           </Button>
+          <button 
+            className="ml-2 p-2 hover:bg-gray-100 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleWishlist(e, product.id);
+            }}
+          >
+            <Heart 
+              size={20} 
+              className={isInWishlist ? 'text-red-500 fill-red-500' : 'text-gray-600 hover:text-red-500'} 
+            />
+          </button>
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen">

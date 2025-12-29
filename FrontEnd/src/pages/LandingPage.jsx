@@ -56,32 +56,32 @@ function LandingPage() {
     {
       id: 't1',
       name: 'Platinum Velvet Accent Chair ',
-      price: 244.99,
+      price: 24500,
       image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80'
       ,
     },
     {
       id: 't2',
       name: 'Velvet Boucle Accent Chair',
-      price: 344.99,
+      price: 34500,
       image: 'img/shelf.jpeg',
     },
     {
       id: 't3',
       name: 'Shelf',
-      price: 529.99,
+      price: 53000,
       image: 'img/shelf.jpeg',
     },
     {
       id: 't4',
       name: 'Comfort Craft Sofa',
-      price: 699.99,
+      price: 70000,
       image: 'img/sofa.jpeg',
     },
     {
       id: 't5',
       name: 'Modern Dining Table Set',
-      price: 789.99,
+      price: 79000,
       image: 'img/dining set.jpeg',
     },
   ];
@@ -198,7 +198,7 @@ function LandingPage() {
               <img src={product.image} className="w-full h-48 md:h-52 object-cover" alt={product.name} />
               <div className="p-5">
                 <h4 className="font-semibold text-base md:text-lg mb-2 line-clamp-2">{product.name}</h4>
-                <p className="text-gray-600 text-lg font-bold mb-3">৳{Math.round(product.price * 110)}</p>
+                <p className="text-gray-600 text-lg font-bold mb-3">৳{Math.round(product.price)}</p>
                 <Button 
                   size="sm" 
                   onClick={() => handleAddToCart(product)}

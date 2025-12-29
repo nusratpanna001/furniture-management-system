@@ -6,6 +6,8 @@ use App\Models\Products;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -141,7 +143,11 @@ class ProductController extends Controller
     public function update(Request $request, $id): JsonResponse
     {
         try {
+            Log::info("Update request for product ID: {$id}");
+            Log::info("Request data:", $request->all());
+            
             $product = Products::findOrFail($id);
+            Log::info("Product found:", ['id' => $product->id, 'name' => $product->name, 'image_url' => $product->image_url]);
 
             $validator = Validator::make($request->all(), [
                 'name' => 'sometimes|string|max:255',
@@ -157,6 +163,7 @@ class ProductController extends Controller
             ]);
 
             if ($validator->fails()) {
+                Log::error("Validation failed:", $validator->errors()->toArray());
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
@@ -165,21 +172,33 @@ class ProductController extends Controller
             }
 
             $data = $validator->validated();
+            Log::info("Validated data:", $data);
 
             // Handle file upload
             if ($request->hasFile('image')) {
+                Log::info("New image file detected");
                 // Delete old image if exists
                 if ($product->image_url && file_exists(public_path($product->image_url))) {
                     unlink(public_path($product->image_url));
+                    Log::info("Old image deleted: {$product->image_url}");
                 }
 
                 $image = $request->file('image');
                 $imageName = time() . '_' . $image->getClientOriginalName();
                 $image->move(public_path('product'), $imageName);
                 $data['image_url'] = 'product/' . $imageName;
+                Log::info("New image saved: {$data['image_url']}");
+            } else {
+                Log::info("No new image file, checking for image_url in request");
+                if ($request->has('image_url')) {
+                    Log::info("image_url provided: " . $request->image_url);
+                } else {
+                    Log::info("No image_url provided, keeping existing: " . $product->image_url);
+                }
             }
 
             $product->update($data);
+            Log::info("Product updated successfully");
 
             return response()->json([
                 'success' => true,
@@ -187,6 +206,8 @@ class ProductController extends Controller
                 'data' => $product->fresh()
             ]);
         } catch (\Exception $e) {
+            Log::error("Update failed: " . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update product',
@@ -196,21 +217,49 @@ class ProductController extends Controller
     }
 
     /**
-     * Remove the specified product (soft delete by setting is_active to false)
+     * Remove the specified product from database
      */
     public function destroy($id): JsonResponse
     {
         try {
-            $product = Products::findOrFail($id);
+            Log::info("Delete request for product ID: {$id}");
             
-            // Soft delete by setting is_active to false
-            $product->update(['is_active' => false]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Product deleted successfully'
-            ]);
+            $product = Products::findOrFail($id);
+            Log::info("Product found: {$product->name}");
+            
+            // Store image path before deletion
+            $imagePath = $product->image_url;
+            
+            // Use DB transaction for safety
+            DB::beginTransaction();
+            
+            try {
+                // Delete related records first (if not using cascade)
+                DB::table('order_items')->where('product_id', $id)->delete();
+                DB::table('wishlists')->where('product_id', $id)->delete();
+                
+                // Delete the product from database
+                $deleted = DB::table('products')->where('id', $id)->delete();
+                Log::info("Product deleted, rows affected: {$deleted}");
+                
+                // Delete product image if exists
+                if ($imagePath && file_exists(public_path($imagePath))) {
+                    @unlink(public_path($imagePath));
+                    Log::info("Image deleted: {$imagePath}");
+                }
+                
+                DB::commit();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Product deleted successfully'
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
         } catch (\Exception $e) {
+            Log::error("Product deletion error: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete product',

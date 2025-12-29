@@ -58,8 +58,16 @@ function AdminCategoriesPage() {
   const handleUpdate = async (formData) => {
     if (!editingCategory) return;
     try {
+      console.log('=== UPDATE CATEGORY DEBUG ===');
+      console.log('1. Editing category:', editingCategory);
+      console.log('2. Form data received from CategoryForm:', formData);
+      console.log('3. formData.name value:', formData.name);
+      console.log('4. formData.name type:', typeof formData.name);
+      console.log('5. Is name empty?', !formData.name || formData.name.trim() === '');
+      
       // Validate name field
       if (!formData.name || formData.name.trim() === '') {
+        console.error('NAME IS EMPTY! Cannot proceed.');
         alert('Category name is required');
         return;
       }
@@ -69,20 +77,36 @@ function AdminCategoriesPage() {
       data.append('_method', 'PUT'); // Laravel needs this for FormData PUT requests
       data.append('name', formData.name.trim());
       
-      // Add image file if exists, otherwise use URL
+      // Add image file if exists, otherwise preserve existing image
       if (formData.imageFile) {
         data.append('image', formData.imageFile);
-      } else if (formData.image) {
-        data.append('image_url', formData.image);
+        console.log('6. Adding new image file:', formData.imageFile.name);
+      } else if (formData.imageUrl) {
+        data.append('image_url', formData.imageUrl);
+        console.log('6. Adding image URL:', formData.imageUrl);
+      } else if (editingCategory?.image) {
+        // Preserve existing image when updating without new image
+        data.append('image_url', editingCategory.image);
+        console.log('6. Preserving existing image:', editingCategory.image);
       }
       
+      // Log FormData contents
+      console.log('7. FormData contents being sent to backend:');
+      for (let pair of data.entries()) {
+        console.log('   ', pair[0], ':', pair[1]);
+      }
+      
+      console.log('8. Making API call to update category...');
       const res = await api.categories.update(editingCategory.id, data);
+      console.log('9. Update SUCCESS! Response:', res);
       setCategories((prev) => prev.map((c) => (c.id === editingCategory.id ? res.data : c)));
       setShowEditModal(false);
       setEditingCategory(null);
     } catch (err) {
-      console.error('Failed to update category', err);
-      alert(err.message || 'Failed to update category');
+      console.error('10. Update FAILED!', err);
+      console.error('11. Error response data:', err.response?.data);
+      console.error('12. Error response status:', err.response?.status);
+      alert(err.response?.data?.message || err.message || 'Failed to update category');
     }
   };
 

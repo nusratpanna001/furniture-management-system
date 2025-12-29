@@ -70,7 +70,9 @@ function Table({ columns, data, onRowClick, className }) {
               </td>
             </tr>
           ) : (
-            paginatedData.map((row, rowIndex) => (
+            paginatedData.map((row, rowIndex) => {
+              const globalIndex = (page - 1) * rowsPerPage + rowIndex;
+              return (
               <tr
                 key={rowIndex + (page - 1) * rowsPerPage}
                 onClick={() => onRowClick?.(row)}
@@ -87,11 +89,12 @@ function Table({ columns, data, onRowClick, className }) {
                       column.cellClassName
                     )}
                   >
-                    {column.render ? column.render(row) : row[column.accessor]}
+                    {column.render ? column.render(row, globalIndex) : row[column.accessor]}
                   </td>
                 ))}
               </tr>
-            ))
+            );
+            })
           )}
         </tbody>
       </table>

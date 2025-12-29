@@ -78,6 +78,7 @@ export const api = {
     get: (id) => apiClient.get(`/products/${id}`),
     create: (data) => apiClient.post('/admin/products', data),
     update: (id, data) => apiClient.put(`/admin/products/${id}`, data),
+    updateWithFormData: (id, data) => apiClient.post(`/admin/products/${id}`, data), // For FormData with _method
     delete: (id) => apiClient.delete(`/admin/products/${id}`),
     getByCategory: (category) => apiClient.get(`/products/category/${category}`),
     getFeatured: () => apiClient.get('/products/featured/list'),
@@ -128,7 +129,13 @@ export const api = {
   categories: {
     list: () => apiClient.get('/categories'),
     create: (data) => apiClient.post('/admin/categories', data),
-    update: (id, data) => apiClient.put(`/admin/categories/${id}`, data),
+    update: (id, data) => {
+      // Use POST for FormData with _method=PUT (Laravel requirement)
+      if (data instanceof FormData) {
+        return apiClient.post(`/admin/categories/${id}`, data);
+      }
+      return apiClient.put(`/admin/categories/${id}`, data);
+    },
     delete: (id) => apiClient.delete(`/admin/categories/${id}`),
   },
 

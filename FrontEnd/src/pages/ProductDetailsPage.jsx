@@ -8,8 +8,7 @@ import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { mockProducts } from '../lib/mockData';
 
 function usdToBdt(usd) {
-  const rate = 110;
-  return Math.round(usd * rate);
+  return Math.round(usd);
 }
 
 function ProductDetailsPage() {

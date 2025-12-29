@@ -10,6 +10,7 @@ import OrderDetailsPage from "./pages/OrderDetailsPage";
 // import SuppliersPage from "./pages/SuppliersPage";
 import PurchasesPage from "./pages/PurchasesPage";
 import ReportsPage from "./pages/ReportsPage";
+import SettingsPage from "./pages/SettingsPage";
 
 // User pages
 import UserDashboardPage from "./pages/UserDashboardPage";
@@ -91,11 +92,21 @@ function AppRoutes() {
           <AppLayout><ReportsPage /></AppLayout>
         </ProtectedRoute>
       } />
+      <Route path="/settings" element={
+        <ProtectedRoute requiredRole="admin">
+          <AppLayout><SettingsPage /></AppLayout>
+        </ProtectedRoute>
+      } />
 
       {/* User pages */}
       <Route path="/user-dashboard" element={
         <ProtectedRoute requiredRole="user">
           <AppLayout><UserDashboardPage /></AppLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/user/orders/:id" element={
+        <ProtectedRoute requiredRole="user">
+          <AppLayout><OrderDetailsPage /></AppLayout>
         </ProtectedRoute>
       } />
 

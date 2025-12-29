@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import StatusPill from '../components/order/StatusPill';
 import Table from '../components/ui/Table';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/apiClient';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/constants';
@@ -13,6 +14,8 @@ import { ORDER_STATUS } from '../lib/constants';
 function OrderDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const { success, error } = useToast();
@@ -24,8 +27,16 @@ function OrderDetailsPage() {
   const loadOrder = async () => {
     setLoading(true);
     try {
-      const response = await api.orders.get(id);
+      // Determine if this is a user viewing their own order
+      const isUserRoute = location.pathname.startsWith('/user/');
+      
+      // Use appropriate endpoint
+      const response = isUserRoute 
+        ? await api.orders.getUserOrder(id)
+        : await api.orders.get(id);
+      
       const orderData = response.data.data || response.data;
+      const backendUrl = 'http://127.0.0.1:8000';
       
       // Map backend fields to frontend format
       const mappedOrder = {
@@ -36,7 +47,23 @@ function OrderDetailsPage() {
         customerPhone: orderData.customer_phone || orderData.phone || 'N/A',
         deliveryAddress: orderData.delivery_address || orderData.address || 'N/A',
         paymentMethod: orderData.payment_method || 'N/A',
-        items: orderData.items || orderData.order_items || [],
+        items: (orderData.items || orderData.order_items || []).map(item => {
+          let imageUrl = 'https://via.placeholder.com/100';
+          if (item.product?.image_url) {
+            if (item.product.image_url.startsWith('http')) {
+              imageUrl = item.product.image_url;
+            } else {
+              imageUrl = `${backendUrl}/${item.product.image_url}`;
+            }
+          }
+          return {
+            ...item,
+            product: {
+              ...item.product,
+              image: imageUrl
+            }
+          };
+        }),
       };
       
       setOrder(mappedOrder);

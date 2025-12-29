@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '../ui/Button';
 
 function CategoryForm({ onSubmit, initialData = {} }) {
@@ -8,6 +8,24 @@ function CategoryForm({ onSubmit, initialData = {} }) {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(initialData.image || '');
+
+  // Sync state when initialData changes (when editing)
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        name: initialData.name || '',
+        image: initialData.image || '',
+      });
+      // Handle image preview URL
+      let previewUrl = initialData.image || '';
+      if (previewUrl && !previewUrl.startsWith('http') && !previewUrl.startsWith('data:')) {
+        // Prepend backend URL for relative paths
+        previewUrl = `http://127.0.0.1:8000/${previewUrl}`;
+      }
+      setImagePreview(previewUrl);
+      setImageFile(null); // Reset file when switching to edit mode
+    }
+  }, [initialData]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -42,11 +60,16 @@ function CategoryForm({ onSubmit, initialData = {} }) {
 
   const handleSubmit = e => {
     e.preventDefault();
+    
+    // Ensure name is always included
     const formData = {
-      ...form,
+      name: form.name || initialData?.name || '',
+      image: form.image,
       imageFile: imageFile,
-      imageUrl: form.image || imagePreview
+      imageUrl: imageFile ? null : (initialData?.image || form.image || imagePreview)
     };
+    
+    console.log('CategoryForm submitting:', formData);
     onSubmit?.(formData);
   };
 
@@ -88,24 +111,6 @@ function CategoryForm({ onSubmit, initialData = {} }) {
             />
           </div>
         )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Or Image URL (Optional)
-        </label>
-        <input 
-          name="image" 
-          value={form.image} 
-          onChange={(e) => {
-            handleChange(e);
-            if (e.target.value && !imageFile) {
-              setImagePreview(e.target.value);
-            }
-          }} 
-          placeholder="https://example.com/image.jpg" 
-          className="border px-3 py-2 rounded w-full" 
-        />
       </div>
 
       <Button type="submit" className="bg-amber-700 text-white w-full">Save Category</Button>

@@ -59,13 +59,29 @@ function UserDashboardPage() {
     setLoadingOrders(true);
     try {
       const response = await api.orders.getUserOrders();
+      const backendUrl = 'http://127.0.0.1:8000';
       const ordersData = (response.data || response).map(order => ({
         id: order.id,
         date: order.created_at ? new Date(order.created_at).toISOString().split('T')[0] : 'N/A',
         items: order.items?.length || 0,
         total: parseFloat(order.total) || 0,
         status: order.status,
-        products: order.items?.map(item => item.product?.name || 'Unknown Product') || []
+        products: order.items?.map(item => {
+          let imageUrl = 'https://via.placeholder.com/100';
+          if (item.product?.image_url) {
+            if (item.product.image_url.startsWith('http')) {
+              imageUrl = item.product.image_url;
+            } else {
+              imageUrl = `${backendUrl}/${item.product.image_url}`;
+            }
+          }
+          return {
+            name: item.product?.name || 'Unknown Product',
+            image: imageUrl,
+            quantity: item.quantity,
+            price: item.price
+          };
+        }) || []
       }));
       setUserOrders(ordersData);
     } catch (err) {
@@ -80,14 +96,27 @@ function UserDashboardPage() {
     setLoadingWishlist(true);
     try {
       const response = await api.wishlist.list();
-      const wishlistData = (response.data || response).map(item => ({
-        id: item.id,
-        product_id: item.product_id,
-        name: item.product?.name || 'Unknown Product',
-        price: parseFloat(item.product?.price) || 0,
-        image: item.product?.image || 'https://via.placeholder.com/400',
-        inStock: item.product?.inStock || false,
-      }));
+      const backendUrl = 'http://127.0.0.1:8000';
+      const wishlistData = (response.data || response).map(item => {
+        let imageUrl = 'https://via.placeholder.com/400';
+        
+        if (item.product?.image_url) {
+          if (item.product.image_url.startsWith('http')) {
+            imageUrl = item.product.image_url;
+          } else {
+            imageUrl = `${backendUrl}/${item.product.image_url}`;
+          }
+        }
+        
+        return {
+          id: item.id,
+          product_id: item.product_id,
+          name: item.product?.name || 'Unknown Product',
+          price: parseFloat(item.product?.price) || 0,
+          image: imageUrl,
+          inStock: item.product?.inStock || false,
+        };
+      });
       setWishlistItems(wishlistData);
     } catch (err) {
       console.error('Failed to load wishlist:', err);
@@ -206,18 +235,48 @@ function UserDashboardPage() {
             'bg-yellow-100 text-yellow-700';
 
           return (
-            <Card key={order.id} className="p-4 flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-gray-900">{order.id} <span className="text-sm text-gray-500">• {order.date}</span></p>
-                <p className="text-sm text-gray-600 mt-1">{order.items} item(s) — {order.products.join(', ')}</p>
-              </div>
+            <Card key={order.id} className="p-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* Order Info */}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="font-semibold text-gray-900">Order #{order.id}</p>
+                    <span className="text-sm text-gray-500">• {order.date}</span>
+                    <div className={`inline-block px-2 py-1 rounded-md text-xs font-medium ${statusColor}`}>
+                      {order.status}
+                    </div>
+                  </div>
+                  
+                  {/* Product Images */}
+                  <div className="flex gap-2 mb-3 flex-wrap">
+                    {order.products.slice(0, 3).map((product, idx) => (
+                      <img
+                        key={idx}
+                        src={product.image}
+                        alt={product.name}
+                        className="w-16 h-16 object-cover rounded-lg border"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/100';
+                        }}
+                      />
+                    ))}
+                    {order.products.length > 3 && (
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg border flex items-center justify-center text-gray-600 text-xs font-medium">
+                        +{order.products.length - 3}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <p className="text-sm text-gray-600">
+                    {order.items} item(s) — {order.products.map(p => p.name).join(', ')}
+                  </p>
+                </div>
 
-              <div className="text-right">
-                <p className="font-bold text-lg text-amber-700">৳{Math.round(order.total * 110)}</p>
-                <div className={`inline-block mt-2 px-2 py-1 rounded-md text-sm font-medium ${statusColor}`}>{order.status}</div>
-                <div className="mt-3">
-                  <Link to={`/orders/${order.id}`}>
-                    <Button size="sm">View</Button>
+                {/* Order Summary */}
+                <div className="text-right md:text-right flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end">
+                  <p className="font-bold text-xl text-amber-700 mb-2">৳{Math.round(order.total)}</p>
+                  <Link to={`/user/orders/${order.id}`}>
+                    <Button size="sm">View Details</Button>
                   </Link>
                 </div>
               </div>
@@ -254,7 +313,7 @@ function UserDashboardPage() {
               className="w-full h-48 object-cover mb-4"
             />
             <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
-            <p className="text-2xl font-bold text-amber-700 mb-3">৳{Math.round(item.price * 110)}</p>
+            <p className="text-2xl font-bold text-amber-700 mb-3">৳{Math.round(item.price)}</p>
             <div className="flex gap-2">
               <Button 
                 size="sm" 

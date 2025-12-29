@@ -52,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Admin Product Management Routes
         Route::post('/admin/products', [ProductController::class, 'store']);
         Route::put('/admin/products/{id}', [ProductController::class, 'update']);
+        Route::post('/admin/products/{id}', [ProductController::class, 'update']); // For FormData with _method
         Route::delete('/admin/products/{id}', [ProductController::class, 'destroy']);
         Route::put('/admin/products/{id}/stock', [ProductController::class, 'updateStock']);
 

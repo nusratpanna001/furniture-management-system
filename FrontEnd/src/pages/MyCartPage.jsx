@@ -10,8 +10,7 @@ import { api } from '../lib/apiClient';
 import { useToast } from '../contexts/ToastContext';
 
 function usdToBdt(usd) {
-  const rate = 110; // Example: 1 USD = 110 BDT
-  return Math.round(usd * rate);
+  return Math.round(usd);
 }
 
 function MyCartPage() {
@@ -42,30 +41,6 @@ function MyCartPage() {
   const tax = subtotal * 0.08; // 8% tax
   const shipping = subtotal > 500 ? 0 : 50; // Free shipping over $500
   const total = subtotal + tax + shipping;
-
-  const recommendedProducts = [
-    {
-      id: 5,
-      name: 'Floor Lamp',
-      price: 199.99,
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-      rating: 4.8
-    },
-    {
-      id: 6,
-      name: 'Throw Pillows Set',
-      price: 89.99,
-      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=300&q=80',
-      rating: 4.6
-    },
-    {
-      id: 7,
-      name: 'Wall Mirror',
-      price: 149.99,
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=300&q=80',
-      rating: 4.9
-    }
-  ];
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -267,32 +242,6 @@ function MyCartPage() {
                       Proceed to Checkout
                       <ArrowRight size={16} />
                     </Button>
-                  </div>
-                </Card>
-
-                {/* Recommended Products */}
-                <Card title="You might also like">
-                  <div className="space-y-4">
-                    {recommendedProducts.map((product) => (
-                      <div key={product.id} className="flex gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                        />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{product.name}</h4>
-                          <div className="flex items-center gap-1 mb-1">
-                            <Star className="text-amber-400 fill-current" size={12} />
-                            <span className="text-xs text-gray-600">{product.rating}</span>
-                          </div>
-                          <p className="font-bold text-amber-700">৳{usdToBdt(product.price)}</p>
-                        </div>
-                        <Button size="sm" variant="outline" className="self-center">
-                          Add
-                        </Button>
-                      </div>
-                    ))}
                   </div>
                 </Card>
               </div>

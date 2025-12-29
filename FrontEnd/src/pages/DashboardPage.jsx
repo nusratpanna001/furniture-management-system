@@ -13,9 +13,11 @@ import { api } from '../lib/apiClient';
 import { formatCurrency } from '../lib/utils';
 import { CATEGORIES } from '../lib/constants';
 import { useAuth } from '../contexts/AuthContext';
+import { useDashboard } from '../contexts/DashboardContext';
 
 function DashboardPage() {
   const { user } = useAuth();
+  const { refreshTrigger } = useDashboard();
   // Local category management (mock) - hooks must be at the top
   const [categoriesList, setCategoriesList] = useState([]);
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -25,19 +27,23 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Dashboard refresh triggered, refreshTrigger:', refreshTrigger);
     loadDashboardData();
-  }, []);
+  }, [refreshTrigger]);
 
   const loadDashboardData = async () => {
     setLoading(true);
     try {
       // Try backend API first
       try {
-        const res = await api.reports.dashboard();
-        // api client returns data directly via interceptor
-        const payload = res?.data ?? res;
+        const response = await api.reports.dashboard();
+        console.log('Raw API response:', response);
+        // api client returns response.data via interceptor
+        // Backend returns { success: true, data: { kpis, topProducts, etc } }
+        // After interceptor, we get { success: true, data: { ... } }
+        const payload = response.data || response;
+        console.log('Dashboard data payload:', payload);
         setDashboardData(payload);
-        console.log('Dashboard data loaded from backend:', payload);
       } catch (apiErr) {
         // Fallback to mock data if backend fails
         console.warn('Backend API failed, using mock data:', apiErr);
@@ -55,21 +61,21 @@ function DashboardPage() {
     
     {
       title: 'Total Products',
-      value: dashboardData?.kpis.totalProducts || 0,
+      value: dashboardData?.kpis?.totalProducts || 0,
       icon: Package,
       color: 'text-amber-600',
       bgColor: 'bg-amber-100',
     },
     {
       title: 'Total Categories',
-      value: dashboardData?.kpis.totalCategories || 0,
+      value: dashboardData?.kpis?.totalCategories || 0,
       icon: Package,
       color: 'text-amber-600',
       bgColor: 'bg-amber-100',
     },
     {
       title: 'Total Customers',
-      value: dashboardData?.kpis.totalCustomers || 0,
+      value: dashboardData?.kpis?.totalCustomers || 0,
       icon: Users,
       color: 'text-amber-700',
       bgColor: 'bg-amber-100',
@@ -126,9 +132,10 @@ function DashboardPage() {
   const adminNavigation = [
     // Core Admin Functions
     { name: 'Categories', path: '/inventory', icon: Package, color: 'bg-gradient-to-r from-amber-500 to-amber-700', description: 'Product categories & inventory' },
-    { name: 'Products', path: '/admin/products', icon: Settings, color: 'bg-gradient-to-r from-amber-600 to-amber-800', description: 'Furniture catalog management' },
+    { name: 'Products', path: '/admin/products', icon: Package, color: 'bg-gradient-to-r from-amber-600 to-amber-800', description: 'Furniture catalog management' },
     { name: 'Orders', path: '/orders', icon: ShoppingCart, color: 'bg-gradient-to-r from-amber-500 to-amber-700', description: 'Manage all customer orders' },
-    { name: 'Customers', path: '/customers', icon: Users, color: 'bg-gradient-to-r from-amber-600 to-amber-800', description: 'Customer management' }
+    { name: 'Customers', path: '/customers', icon: Users, color: 'bg-gradient-to-r from-amber-600 to-amber-800', description: 'Customer management' },
+    { name: 'Settings', path: '/settings', icon: Settings, color: 'bg-gradient-to-r from-amber-700 to-amber-900', description: 'System configuration & preferences' }
   ];
 
   const handleAddCategory = () => {
@@ -152,8 +159,6 @@ function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
       </div>
-
-
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

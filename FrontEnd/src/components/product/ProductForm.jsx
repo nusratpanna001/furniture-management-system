@@ -59,17 +59,30 @@ function ProductForm({ initialData, onSubmit, onCancel, loading }) {
   };
 
   const handleFormSubmit = (data) => {
+    console.log('=== FORM SUBMIT HANDLER CALLED ===');
+    console.log('Form data:', data);
+    console.log('Has initialData?', !!initialData);
     // Include image file in form data
     const formData = {
       ...data,
       imageFile: imageFile,
-      imageUrl: imageUrl || imagePreview
+      imageUrl: imageFile ? null : (initialData?.image_url || imagePreview)
     };
+    console.log('Calling onSubmit with formData:', formData);
     onSubmit(formData);
   };
 
+  const handleFormError = (errors) => {
+    console.error('=== FORM VALIDATION ERRORS ===');
+    console.error('Errors:', errors);
+    console.error('Error details:', JSON.stringify(errors, null, 2));
+    Object.keys(errors).forEach(key => {
+      console.error(`Field "${key}":`, errors[key].message);
+    });
+  };
+
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit, handleFormError)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Input
           label="Product Name"
@@ -153,23 +166,6 @@ function ProductForm({ initialData, onSubmit, onCancel, loading }) {
       </div>
 
       <div>
-        <label className="block text-gray-700 font-semibold mb-2 text-sm">
-          Or Image URL (Optional)
-        </label>
-        <Input
-          type="url"
-          placeholder="https://example.com/image.jpg"
-          value={imageUrl}
-          onChange={(e) => {
-            setImageUrl(e.target.value);
-            if (e.target.value) {
-              setImagePreview(e.target.value);
-            }
-          }}
-        />
-      </div>
-
-      <div>
         <label className="block text-gray-700 font-semibold mb-2 text-sm">Description</label>
         <textarea
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent resize-none"
@@ -187,7 +183,13 @@ function ProductForm({ initialData, onSubmit, onCancel, loading }) {
         <Button type="button" variant="secondary" size="md" onClick={onCancel} disabled={loading}>
           Cancel
         </Button>
-        <Button type="submit" size="md" loading={loading} disabled={loading}>
+        <Button 
+          type="submit" 
+          size="md" 
+          loading={loading} 
+          disabled={loading}
+          onClick={() => console.log('=== UPDATE BUTTON CLICKED ===')}
+        >
           {initialData ? 'Update Product' : 'Create Product'}
         </Button>
       </div>

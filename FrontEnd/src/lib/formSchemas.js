@@ -27,7 +27,7 @@ export const productSchema = z.object({
   price: z.coerce.number().min(0, 'Price must be a positive number'),
   stock: z.coerce.number().int().min(0, 'Stock must be a positive integer'),
   description: z.string().optional(),
-  imageUrl: z.string().url('Invalid image URL').optional().or(z.literal('')),
+  imageUrl: z.string().optional(),
 });
 
 // Order Schema

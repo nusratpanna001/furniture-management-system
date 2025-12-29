@@ -2,14 +2,20 @@ import { Edit, Trash2 } from 'lucide-react';
 import Table from '../ui/Table';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
-import { usePagination } from '../../hooks/usePagination';
 import { formatCurrencyBDT } from '../../lib/utils';
 import { LOW_STOCK_THRESHOLD } from '../../lib/constants';
 
 function ProductList({ products, onEdit, onDelete, loading }) {
-  const { paginatedData, currentPage, totalPages, nextPage, prevPage, goToPage } = usePagination(products);
-
   const columns = [
+    {
+      header: 'SL',
+      accessor: 'sl',
+      render: (row, index) => (
+        <span className="font-medium text-gray-700">
+          {index + 1}
+        </span>
+      ),
+    },
     {
       header: 'Image',
       accessor: 'image_url',
@@ -115,44 +121,7 @@ function ProductList({ products, onEdit, onDelete, loading }) {
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <Table columns={columns} data={paginatedData} />
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={prevPage}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            {[...Array(totalPages)].map((_, i) => (
-              <Button
-                key={i}
-                size="sm"
-                variant={currentPage === i + 1 ? 'primary' : 'outline'}
-                onClick={() => goToPage(i + 1)}
-              >
-                {i + 1}
-              </Button>
-            ))}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={nextPage}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <Table columns={columns} data={products} />
     </div>
   );
 }

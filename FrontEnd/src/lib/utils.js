@@ -1,5 +1,5 @@
 export function formatCurrencyBDT(amount) {
-  return '৳' + Math.round(amount * 110);
+  return '৳' + Math.round(amount);
 }
 import { clsx } from 'clsx';
 
@@ -8,7 +8,7 @@ export function cn(...inputs) {
 }
 
 export function formatCurrency(amount) {
-  const bdtAmount = Math.round(amount * 110);
+  const bdtAmount = Math.round(amount);
   return '৳' + bdtAmount.toLocaleString('en-US');
 }
 

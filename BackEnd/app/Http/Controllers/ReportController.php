@@ -13,8 +13,8 @@ class ReportController extends Controller
     public function dashboard()
     {
         try {
-            // Get KPIs
-            $totalProducts = Products::count();
+            // Get KPIs - count only active products
+            $totalProducts = Products::active()->count();
             
             // Try to count categories, default to 0 if table doesn't exist
             try {
@@ -26,9 +26,10 @@ class ReportController extends Controller
             $totalCustomers = User::where('role', 'user')->count();
             $totalOrders = Order::count();
 
-            // Get top products by order items
+            // Get top products by order items (only active products)
             $topProducts = DB::table('order_items')
                 ->join('products', 'order_items.product_id', '=', 'products.id')
+                ->where('products.is_active', true)
                 ->select(
                     'products.id',
                     'products.name',
@@ -41,8 +42,9 @@ class ReportController extends Controller
                 ->limit(5)
                 ->get();
 
-            // Get low stock products
-            $lowStockProducts = Products::where('stock', '<', 10)
+            // Get low stock products (only active products)
+            $lowStockProducts = Products::active()
+                ->where('stock', '<', 10)
                 ->orderBy('stock', 'asc')
                 ->limit(10)
                 ->get()
