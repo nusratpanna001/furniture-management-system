@@ -48,4 +48,9 @@ class Products extends Model
     {
         return $query->where('stock', '>', 0);
     }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category', 'id');
+    }
 }

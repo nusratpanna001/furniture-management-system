@@ -137,7 +137,8 @@ function ReportsPage() {
           </thead>
           <tbody>
             ${reportData?.topProducts?.map((product, idx) => `
-              <tr>
+              <tr>iol.'
+               
                 <td>#${idx + 1}</td>
                 <td>${product.name}</td>
                 <td>${product.sales}</td>

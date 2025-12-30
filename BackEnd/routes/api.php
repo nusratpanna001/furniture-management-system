@@ -8,10 +8,29 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\PaymentController;
 
 // Public Routes
 Route::post('/register', [UsersController::class, 'register']);
 Route::post('/login', [UsersController::class, 'login']);
+
+// Payment Gateway Callback Routes (Public - SSLCommerz will call these)
+Route::post('/payment/success', [PaymentController::class, 'paymentSuccess']);
+Route::post('/payment/fail', [PaymentController::class, 'paymentFail']);
+Route::post('/payment/cancel', [PaymentController::class, 'paymentCancel']);
+
+// Test payment endpoint (for debugging)
+Route::get('/payment/test', function() {
+    return response()->json([
+        'success' => true,
+        'message' => 'Payment API is working',
+        'config' => [
+            'sandbox' => env('SSLCOMMERZ_SANDBOX', true),
+            'store_id' => env('SSLCOMMERZ_STORE_ID', 'not-set'),
+            'frontend_url' => env('FRONTEND_URL', 'not-set'),
+        ]
+    ]);
+});
 
 // Public Category Routes
 Route::get('/categories', [CategoryController::class, 'index']);
@@ -81,6 +100,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/user/orders', [OrderController::class, 'getUserOrders']);
         Route::get('/user/orders/{id}', [OrderController::class, 'show']);
+        
+        // Payment Initiation Route (Protected - User must be logged in)
+        Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment']);
         
         // User Wishlist Routes
         Route::get('/user/wishlist', [WishlistController::class, 'index']);

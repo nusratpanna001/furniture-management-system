@@ -21,7 +21,8 @@ return new class extends Migration
             $table->decimal('total', 10, 2);
             $table->enum('status', ['pending', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
             $table->string('payment_method')->default('cod');
-            $table->enum('payment_status', ['unpaid', 'paid', 'refunded'])->default('unpaid');
+            $table->enum('payment_status', ['unpaid', 'paid', 'refunded', 'failed', 'cancelled'])->default('unpaid');
+            $table->string('transaction_id')->nullable()->unique();
             $table->text('shipping_address')->nullable();
             $table->string('customer_name')->nullable();
             $table->string('customer_phone')->nullable();

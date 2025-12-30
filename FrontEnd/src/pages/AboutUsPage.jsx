@@ -164,32 +164,6 @@ function AboutUsPage() {
 
       {/* Team Section removed as requested. */}
 
-      {/* Stats Section */}
-      <section className="bg-amber-50 py-16 md:py-20 px-6 md:px-10">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">LuxeHome by Numbers</h2>
-          
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <div className="text-4xl font-bold text-amber-700 mb-2">15+</div>
-              <div className="text-gray-600 font-medium">Years of Excellence</div>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <div className="text-4xl font-bold text-amber-700 mb-2">50K+</div>
-              <div className="text-gray-600 font-medium">Happy Customers</div>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <div className="text-4xl font-bold text-amber-700 mb-2">500+</div>
-              <div className="text-gray-600 font-medium">Furniture Designs</div>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-md">
-              <div className="text-4xl font-bold text-amber-700 mb-2">25+</div>
-              <div className="text-gray-600 font-medium">Countries Served</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Call to Action */}
       <section className="py-16 md:py-20 px-6 md:px-10 text-center">
         <div className="max-w-4xl mx-auto">

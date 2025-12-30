@@ -38,6 +38,16 @@ function CheckoutPage() {
       return;
     }
 
+    if (!shippingAddress && !user.address) {
+      setError('Please provide a shipping address');
+      return;
+    }
+
+    if (!customerName || !customerPhone) {
+      setError('Please provide your name and phone number');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -55,18 +65,64 @@ function CheckoutPage() {
 
       console.log('Sending order data:', orderData);
       const response = await api.orders.create(orderData);
-      console.log('Order response:', response.data);
+      console.log('Order response:', response);
 
-      if (response.data.success) {
-        clearCart();
-        navigate('/user-dashboard');
-        alert('Order placed successfully!');
+      // Response is already unwrapped by interceptor, check if success exists at root level
+      const orderResponse = response.data ? response : { data: response };
+      
+      if (orderResponse.data?.success || orderResponse.success) {
+        const orderId = orderResponse.data?.data?.id || orderResponse.data?.id;
+        console.log('Order created successfully with ID:', orderId);
+        
+        // If payment method is online, initiate SSLCommerz payment
+        if (paymentMethod === 'online') {
+          try {
+            console.log('Initiating SSLCommerz payment for order:', orderId);
+            const paymentResponse = await api.payment.initiate({
+              order_id: orderId,
+              customer_name: customerName || user.name,
+              customer_email: user.email,
+              customer_phone: customerPhone || user.phone,
+              amount: total,
+            });
+
+            console.log('Payment initiation response:', paymentResponse);
+
+            // Check both paymentResponse and paymentResponse.data for success
+            const paymentData = paymentResponse.data ? paymentResponse.data : paymentResponse;
+            
+            if (paymentData.success && paymentData.gateway_url) {
+              console.log('Redirecting to SSLCommerz gateway:', paymentData.gateway_url);
+              // Redirect to SSLCommerz payment gateway
+              window.location.href = paymentData.gateway_url;
+              return; // Don't clear cart yet, wait for payment success
+            } else {
+              console.error('No gateway URL in response:', paymentData);
+              setError('Failed to initiate online payment. Please try again.');
+              setLoading(false);
+              return;
+            }
+          } catch (paymentErr) {
+            console.error('Payment initiation error:', paymentErr);
+            console.error('Error details:', paymentErr.message, paymentErr.data);
+            setError(paymentErr.message || 'Failed to initiate online payment. Please try again or select Cash on Delivery.');
+            setLoading(false);
+            return;
+          }
+        } else {
+          // Cash on Delivery - clear cart and redirect
+          clearCart();
+          navigate('/user-dashboard');
+          alert('Order placed successfully!');
+        }
       }
     } catch (err) {
       console.error('Order creation failed:', err);
       setError(err.response?.data?.message || 'Failed to place order');
     } finally {
-      setLoading(false);
+      if (paymentMethod !== 'online') {
+        setLoading(false);
+      }
     }
   };
 
@@ -91,6 +147,7 @@ function CheckoutPage() {
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-lg"
+                    required
                   />
                   <input
                     type="tel"
@@ -98,6 +155,7 @@ function CheckoutPage() {
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-lg"
+                    required
                   />
                   <textarea
                     placeholder="Shipping Address"
@@ -105,9 +163,34 @@ function CheckoutPage() {
                     onChange={(e) => setShippingAddress(e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-lg"
                     rows="3"
+                    required
                   />
                 </div>
               </div>
+              
+              {/* Order Summary */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h2 className="text-xl font-bold mb-3">Order Summary</h2>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span>৳{subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax (8%):</span>
+                    <span>৳{tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Shipping:</span>
+                    <span>{shipping === 0 ? 'FREE' : `৳${shipping.toFixed(2)}`}</span>
+                  </div>
+                  <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                    <span>Total:</span>
+                    <span>৳{total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+              
               <div>
                 <h2 className="text-xl font-bold mb-2">Payment Method</h2>
                 <div className="space-y-2">
@@ -129,9 +212,14 @@ function CheckoutPage() {
                       checked={paymentMethod === 'online'}
                       onChange={() => setPaymentMethod('online')}
                     />
-                    Online Payment
+                    Online Payment (SSLCommerz)
                   </label>
                 </div>
+                {paymentMethod === 'online' && (
+                  <div className="mt-2 p-3 bg-blue-50 text-sm text-blue-800 rounded-lg">
+                    You will be redirected to SSLCommerz payment gateway to complete your payment securely.
+                  </div>
+                )}
               </div>
               <Button 
                 className="w-full" 
