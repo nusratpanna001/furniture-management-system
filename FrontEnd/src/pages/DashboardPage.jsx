@@ -58,7 +58,6 @@ function DashboardPage() {
   };
 
   const kpiCards = [
-    
     {
       title: 'Total Products',
       value: dashboardData?.kpis?.totalProducts || 0,
@@ -134,8 +133,7 @@ function DashboardPage() {
     { name: 'Categories', path: '/inventory', icon: Package, color: 'bg-gradient-to-r from-amber-500 to-amber-700', description: 'Product categories & inventory' },
     { name: 'Products', path: '/admin/products', icon: Package, color: 'bg-gradient-to-r from-amber-600 to-amber-800', description: 'Furniture catalog management' },
     { name: 'Orders', path: '/orders', icon: ShoppingCart, color: 'bg-gradient-to-r from-amber-500 to-amber-700', description: 'Manage all customer orders' },
-    { name: 'Customers', path: '/customers', icon: Users, color: 'bg-gradient-to-r from-amber-600 to-amber-800', description: 'Customer management' },
-    { name: 'Settings', path: '/settings', icon: Settings, color: 'bg-gradient-to-r from-amber-700 to-amber-900', description: 'System configuration & preferences' }
+    { name: 'Customers', path: '/customers', icon: Users, color: 'bg-gradient-to-r from-amber-600 to-amber-800', description: 'Customer management' }
   ];
 
   const handleAddCategory = () => {

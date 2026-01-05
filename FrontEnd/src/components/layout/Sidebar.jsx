@@ -36,7 +36,6 @@ const routes = [
   { path: '/admin-products', name: 'Products', icon: 'Package' },
   { path: '/orders', name: 'Orders', icon: 'ShoppingCart' },
   { path: '/reports', name: 'Reports', icon: 'BarChart3' },
-  { path: '/settings', name: 'Settings', icon: 'Settings' },
 ];
 
 function Sidebar({ isOpen, onClose }) {

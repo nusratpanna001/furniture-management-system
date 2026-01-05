@@ -12,10 +12,10 @@ export const LOGO_URL = 'assets/logo.png';
 
 // Order Statuses
 export const ORDER_STATUS = {
-  PENDING: 'Pending',
-  IN_PROGRESS: 'In Progress',
-  DELIVERED: 'Delivered',
-  CANCELLED: 'Cancelled',
+  PENDING: 'pending',
+  IN_PROGRESS: 'processing',
+  DELIVERED: 'delivered',
+  CANCELLED: 'cancelled',
 };
 
 // Payment Statuses

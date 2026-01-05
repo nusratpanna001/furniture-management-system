@@ -10,18 +10,26 @@ function AdminProductsPage() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [perPage, setPerPage] = useState(100); // Show all products by default
   const { success, error } = useToast();
   const { triggerDashboardRefresh } = useDashboard();
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [currentPage, perPage]);
 
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const response = await api.products.list();
+      const response = await api.get(`/products?per_page=${perPage}&page=${currentPage}`);
       setProducts(response.data || []);
+      if (response.meta) {
+        setTotalPages(response.meta.last_page);
+        setTotalProducts(response.meta.total);
+      }
     } catch (err) {
       error('Failed to load products');
       console.error('Failed to load products:', err);
@@ -75,7 +83,10 @@ function AdminProductsPage() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Products (Admin)</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Products (Admin)</h1>
+          <p className="text-sm text-gray-600 mt-1">Total: {totalProducts} products</p>
+        </div>
         <button
           className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium shadow"
           onClick={() => setShowModal(true)}
@@ -84,6 +95,43 @@ function AdminProductsPage() {
         </button>
       </div>
       <ProductList products={products} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          <div className="flex items-center gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-2 rounded-lg ${
+                  currentPage === page
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">

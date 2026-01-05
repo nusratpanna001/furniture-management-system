@@ -17,10 +17,16 @@ function OrdersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [statusCounts, setStatusCounts] = useState({
+    pending: 0,
+    processing: 0,
+    delivered: 0,
+  });
   const { success, error } = useToast();
 
   useEffect(() => {
     loadOrders();
+    loadStatusCounts();
   }, []);
 
   useEffect(() => {
@@ -50,6 +56,20 @@ function OrdersPage() {
     }
   };
 
+  const loadStatusCounts = async () => {
+    try {
+      const response = await api.reports.dashboard();
+      const kpis = response.data?.kpis || response.kpis;
+      setStatusCounts({
+        pending: kpis?.pendingOrders || 0,
+        processing: kpis?.processingOrders || 0,
+        delivered: kpis?.deliveredOrders || 0,
+      });
+    } catch (err) {
+      console.error('Failed to load status counts:', err);
+    }
+  };
+
   const applyFilters = () => {
     let filtered = [...orders];
     
@@ -65,6 +85,7 @@ function OrdersPage() {
       await api.orders.updateStatus(orderId, newStatus);
       success('Order status updated successfully');
       loadOrders();
+      loadStatusCounts(); // Refresh counts after status update
     } catch (err) {
       console.error('Failed to update order status:', err);
       error('Failed to update order status');
@@ -171,7 +192,7 @@ function OrdersPage() {
         <Card>
           <div className="text-center">
             <p className="text-3xl font-bold text-yellow-600">
-              {orders.filter((o) => o.status === ORDER_STATUS.PENDING).length}
+              {statusCounts.pending}
             </p>
             <p className="text-gray-600 mt-1">Pending</p>
           </div>
@@ -179,7 +200,7 @@ function OrdersPage() {
         <Card>
           <div className="text-center">
             <p className="text-3xl font-bold text-blue-600">
-              {orders.filter((o) => o.status === ORDER_STATUS.IN_PROGRESS).length}
+              {statusCounts.processing}
             </p>
             <p className="text-gray-600 mt-1">In Progress</p>
           </div>
@@ -187,7 +208,7 @@ function OrdersPage() {
         <Card>
           <div className="text-center">
             <p className="text-3xl font-bold text-green-600">
-              {orders.filter((o) => o.status === ORDER_STATUS.DELIVERED).length}
+              {statusCounts.delivered}
             </p>
             <p className="text-gray-600 mt-1">Delivered</p>
           </div>
@@ -198,6 +219,7 @@ function OrdersPage() {
       <OrderTable
         orders={filteredOrders}
         loading={loading}
+        onStatusChange={handleUpdateStatus}
       />
 
       {/* Modal */}

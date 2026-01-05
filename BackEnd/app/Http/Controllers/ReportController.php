@@ -25,6 +25,14 @@ class ReportController extends Controller
             
             $totalCustomers = User::where('role', 'user')->count();
             $totalOrders = Order::count();
+            
+            // Calculate total revenue from all orders
+            $totalRevenue = Order::sum('total');
+            
+            // Count orders by status
+            $pendingOrders = Order::where('status', 'pending')->count();
+            $processingOrders = Order::where('status', 'processing')->count();
+            $deliveredOrders = Order::where('status', 'delivered')->count();
 
             // Get top products by order items (only active products)
             $topProducts = DB::table('order_items')
@@ -57,6 +65,11 @@ class ReportController extends Controller
                         'price' => $product->price,
                     ];
                 });
+            
+            // Count low stock items for KPI
+            $lowStockItems = Products::active()
+                ->where('stock', '<', 10)
+                ->count();
 
             // Get sales trend (last 30 days)
             $salesTrend = DB::table('orders')
@@ -78,6 +91,11 @@ class ReportController extends Controller
                         'totalCategories' => $totalCategories,
                         'totalCustomers' => $totalCustomers,
                         'totalOrders' => $totalOrders,
+                        'totalRevenue' => $totalRevenue,
+                        'lowStockItems' => $lowStockItems,
+                        'pendingOrders' => $pendingOrders,
+                        'processingOrders' => $processingOrders,
+                        'deliveredOrders' => $deliveredOrders,
                     ],
                     'topProducts' => $topProducts,
                     'lowStockProducts' => $lowStockProducts,

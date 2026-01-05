@@ -250,38 +250,46 @@ function ReportsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-gray-900">
                 {formatCurrency(reportData?.kpis.totalRevenue || 0)}
               </p>
             </div>
-            <TrendingUp className="text-green-600" size={32} />
+            <div className="p-3 rounded-full bg-amber-100">
+              <TrendingUp className="text-amber-600" size={24} />
+            </div>
           </div>
         </Card>
         <Card>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Orders</p>
-              <p className="text-2xl font-bold text-blue-600">{reportData?.kpis.totalOrders || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{reportData?.kpis.totalOrders || 0}</p>
             </div>
-            <Package className="text-blue-600" size={32} />
+            <div className="p-3 rounded-full bg-amber-100">
+              <Package className="text-amber-600" size={24} />
+            </div>
           </div>
         </Card>
         <Card>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Products</p>
-              <p className="text-2xl font-bold text-amber-600">{reportData?.kpis.totalProducts || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{reportData?.kpis.totalProducts || 0}</p>
             </div>
-            <Package className="text-amber-600" size={32} />
+            <div className="p-3 rounded-full bg-amber-100">
+              <Package className="text-amber-600" size={24} />
+            </div>
           </div>
         </Card>
         <Card>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Low Stock</p>
-              <p className="text-2xl font-bold text-red-600">{reportData?.kpis.lowStockItems || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{reportData?.kpis.lowStockItems || 0}</p>
             </div>
-            <AlertCircle className="text-red-600" size={32} />
+            <div className="p-3 rounded-full bg-amber-100">
+              <AlertCircle className="text-amber-600" size={24} />
+            </div>
           </div>
         </Card>
       </div>

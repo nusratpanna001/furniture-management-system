@@ -1,14 +1,24 @@
-import { Eye } from 'lucide-react';
+import { Eye, MoreVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import Table from '../ui/Table';
 import Button from '../ui/Button';
 import StatusPill from './StatusPill';
 import { usePagination } from '../../hooks/usePagination';
 import { formatCurrency, formatDate } from '../../lib/utils';
+import { ORDER_STATUS } from '../../lib/constants';
 
-function OrderTable({ orders, loading }) {
+function OrderTable({ orders, loading, onStatusChange }) {
   const navigate = useNavigate();
+  const [openMenuId, setOpenMenuId] = useState(null);
   const { paginatedData, currentPage, totalPages, nextPage, prevPage, goToPage } = usePagination(orders);
+
+  const handleStatusChange = (orderId, newStatus) => {
+    if (onStatusChange) {
+      onStatusChange(orderId, newStatus);
+    }
+    setOpenMenuId(null);
+  };
 
   const columns = [
     {
@@ -42,7 +52,48 @@ function OrderTable({ orders, loading }) {
     {
       header: 'Status',
       accessor: 'status',
-      render: (row) => <StatusPill status={row.status} />,
+      render: (row) => (
+        <div className="relative">
+          <div className="flex items-center gap-2">
+            <StatusPill status={row.status} />
+            <button
+              onClick={() => setOpenMenuId(openMenuId === row.id ? null : row.id)}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <MoreVertical size={16} className="text-gray-600" />
+            </button>
+          </div>
+          
+          {/* Dropdown Menu */}
+          {openMenuId === row.id && (
+            <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+              <div className="py-1">
+                <button
+                  onClick={() => handleStatusChange(row.id, ORDER_STATUS.PENDING)}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                >
+                  <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                  Pending
+                </button>
+                <button
+                  onClick={() => handleStatusChange(row.id, ORDER_STATUS.IN_PROGRESS)}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                >
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  In Progress
+                </button>
+                <button
+                  onClick={() => handleStatusChange(row.id, ORDER_STATUS.DELIVERED)}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                >
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  Delivered
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ),
     },
     {
       header: 'Actions',
