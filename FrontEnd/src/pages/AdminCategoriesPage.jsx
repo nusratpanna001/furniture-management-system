@@ -136,8 +136,14 @@ function AdminCategoriesPage() {
       <CategoryList categories={categories} loading={loading} onEdit={handleEdit} onDelete={handleDelete} />
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+          onClick={() => setShowAddModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold"
               onClick={() => setShowAddModal(false)}
@@ -152,8 +158,17 @@ function AdminCategoriesPage() {
       )}
 
       {showEditModal && editingCategory && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+          onClick={() => {
+            setShowEditModal(false);
+            setEditingCategory(null);
+          }}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold"
               onClick={() => {

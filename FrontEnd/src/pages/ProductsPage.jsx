@@ -48,7 +48,8 @@ function ProductsPage() {
     setLoading(true);
     try {
       console.log('Loading products from API...');
-      const response = await api.products.list();
+      // Request all products by setting a high per_page value
+      const response = await api.products.list({ per_page: 1000 });
       console.log('Products API response:', response);
       setProducts(response.data || []);
       console.log('Products set to state:', response.data);

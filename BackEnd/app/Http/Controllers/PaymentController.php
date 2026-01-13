@@ -93,6 +93,12 @@ class PaymentController extends Controller
             $post_data['product_name'] = 'Furniture Order #' . $order->id;
             $post_data['product_category'] = 'Furniture';
             $post_data['product_profile'] = 'general';
+            
+            // Disable EMI completely to prevent sandbox errors
+            $post_data['emi_option'] = 0;
+            $post_data['emi_max_inst_option'] = 0;
+            $post_data['emi_selected_inst'] = 0;
+            $post_data['emi_allow_only'] = 0;
 
             // Shipment Information (Required by SSLCommerz)
             $post_data['shipping_method'] = 'YES';

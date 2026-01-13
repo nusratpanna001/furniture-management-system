@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import Button from '../ui/Button';
 
-function CategoryForm({ onSubmit, initialData = {} }) {
+function CategoryForm({ onSubmit, initialData }) {
   const [form, setForm] = useState({
-    name: initialData.name || '',
-    image: initialData.image || '',
+    name: initialData?.name || '',
+    image: initialData?.image || '',
   });
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(initialData.image || '');
+  const [imagePreview, setImagePreview] = useState(initialData?.image || '');
 
   // Sync state when initialData changes (when editing)
   useEffect(() => {
-    if (initialData) {
+    if (initialData?.id) {
       setForm({
         name: initialData.name || '',
         image: initialData.image || '',
@@ -25,10 +25,16 @@ function CategoryForm({ onSubmit, initialData = {} }) {
       setImagePreview(previewUrl);
       setImageFile(null); // Reset file when switching to edit mode
     }
-  }, [initialData]);
+  }, [initialData?.id, initialData?.name, initialData?.image]);
 
-  const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    console.log('Input changed:', name, '=', value);
+    setForm((prev) => {
+      const updated = { ...prev, [name]: value };
+      console.log('Updated form state:', updated);
+      return updated;
+    });
   };
 
   const handleImageChange = (e) => {
@@ -78,11 +84,13 @@ function CategoryForm({ onSubmit, initialData = {} }) {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
         <input 
+          type="text"
           name="name" 
           value={form.name} 
           onChange={handleChange} 
           placeholder="Category Name" 
-          className="border px-3 py-2 rounded w-full" 
+          className="border px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-amber-500" 
+          autoComplete="off"
           required 
         />
       </div>
