@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Footer from '../components/layout/Footer';
 import NavBar from '../components/layout/NavBar';
+import DemoPaymentModal from '../components/payment/DemoPaymentModal';
 
 function CheckoutPage() {
   const { cartItems, clearCart } = useCart();
@@ -18,6 +19,8 @@ function CheckoutPage() {
   const [shippingAddress, setShippingAddress] = useState('');
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState(null);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.08;
@@ -74,41 +77,11 @@ function CheckoutPage() {
         const orderId = orderResponse.data?.data?.id || orderResponse.data?.id;
         console.log('Order created successfully with ID:', orderId);
         
-        // If payment method is online, initiate SSLCommerz payment
+        // If payment method is online, show demo payment modal
         if (paymentMethod === 'online') {
-          try {
-            console.log('Initiating SSLCommerz payment for order:', orderId);
-            const paymentResponse = await api.payment.initiate({
-              order_id: orderId,
-              customer_name: customerName || user.name,
-              customer_email: user.email,
-              customer_phone: customerPhone || user.phone,
-              amount: total,
-            });
-
-            console.log('Payment initiation response:', paymentResponse);
-
-            // Check both paymentResponse and paymentResponse.data for success
-            const paymentData = paymentResponse.data ? paymentResponse.data : paymentResponse;
-            
-            if (paymentData.success && paymentData.gateway_url) {
-              console.log('Redirecting to SSLCommerz gateway:', paymentData.gateway_url);
-              // Redirect to SSLCommerz payment gateway
-              window.location.href = paymentData.gateway_url;
-              return; // Don't clear cart yet, wait for payment success
-            } else {
-              console.error('No gateway URL in response:', paymentData);
-              setError('Failed to initiate online payment. Please try again.');
-              setLoading(false);
-              return;
-            }
-          } catch (paymentErr) {
-            console.error('Payment initiation error:', paymentErr);
-            console.error('Error details:', paymentErr.message, paymentErr.data);
-            setError(paymentErr.message || 'Failed to initiate online payment. Please try again or select Cash on Delivery.');
-            setLoading(false);
-            return;
-          }
+          setPendingOrderId(orderId);
+          setShowPaymentModal(true);
+          setLoading(false);
         } else {
           // Cash on Delivery - clear cart and redirect
           clearCart();
@@ -118,12 +91,41 @@ function CheckoutPage() {
       }
     } catch (err) {
       console.error('Order creation failed:', err);
-      setError(err.response?.data?.message || 'Failed to place order');
+      console.error('Error details:', err);
+      const errorMsg = err.message || err.response?.data?.message || 'Failed to place order';
+      setError(errorMsg);
+      setLoading(false);
     } finally {
       if (paymentMethod !== 'online') {
         setLoading(false);
       }
     }
+  };
+
+  const handlePaymentSuccess = async () => {
+    try {
+      // For demo payment, we'll just clear cart and redirect
+      // In production, you would call a payment confirmation endpoint
+      // For now, admin can manually update payment status
+      
+      // Clear cart and redirect
+      clearCart();
+      setShowPaymentModal(false);
+      navigate('/payment-success?order_id=' + pendingOrderId);
+    } catch (err) {
+      console.error('Failed to process payment:', err);
+      setError('Payment processed. Redirecting...');
+      // Still redirect even if there's an error
+      clearCart();
+      setShowPaymentModal(false);
+      navigate('/payment-success?order_id=' + pendingOrderId);
+    }
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentModal(false);
+    setPendingOrderId(null);
+    setError('Payment cancelled. You can try again or select Cash on Delivery.');
   };
 
   return (
@@ -212,12 +214,12 @@ function CheckoutPage() {
                       checked={paymentMethod === 'online'}
                       onChange={() => setPaymentMethod('online')}
                     />
-                    Online Payment (SSLCommerz)
+                    Online Payment (Demo)
                   </label>
                 </div>
                 {paymentMethod === 'online' && (
                   <div className="mt-2 p-3 bg-blue-50 text-sm text-blue-800 rounded-lg">
-                    You will be redirected to SSLCommerz payment gateway to complete your payment securely.
+                    You will be shown a demo payment gateway to complete your payment.
                   </div>
                 )}
               </div>
@@ -238,6 +240,15 @@ function CheckoutPage() {
         </div>
       </div>
       <Footer />
+      
+      {/* Demo Payment Modal */}
+      <DemoPaymentModal
+        isOpen={showPaymentModal}
+        onClose={handlePaymentCancel}
+        onSuccess={handlePaymentSuccess}
+        amount={total}
+        orderDetails={{ orderId: pendingOrderId }}
+      />
     </div>
   );
 }
