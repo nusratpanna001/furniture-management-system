@@ -24,8 +24,9 @@ import ProductDetailsPage from "./pages/ProductDetailsPage";
 import ContactUsPage from "./pages/ContactUsPage";
 import MyCartPage from "./pages/MyCartPage";
 import CheckoutPage from "./pages/CheckoutPage";
-import PaymentSuccessPage from "./pages/PaymentSuccessPage";
-import PaymentFailPage from "./pages/PaymentFailPage";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailed from "./pages/PaymentFailed";
+import PaymentCancelled from "./pages/PaymentCancelled";
 
 // Auth pages
 import LoginPage from "./pages/LoginPage";
@@ -48,8 +49,9 @@ function AppRoutes() {
         <Route path="/products/:id" element={<ProductDetailsPage />} />
       <Route path="/contact-us" element={<ContactUsPage />} />
       <Route path="/my-cart" element={<MyCartPage />} />
-      <Route path="/payment-success" element={<PaymentSuccessPage />} />
-      <Route path="/payment-fail" element={<PaymentFailPage />} />
+      <Route path="/payment/success" element={<PaymentSuccess />} />
+      <Route path="/payment/failed" element={<PaymentFailed />} />
+      <Route path="/payment/cancelled" element={<PaymentCancelled />} />
 
       {/* Auth pages */}
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />

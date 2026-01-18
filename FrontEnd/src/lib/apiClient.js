@@ -148,6 +148,11 @@ export const api = {
     check: (productId) => apiClient.get(`/user/wishlist/check/${productId}`),
   },
 
+  // Payment
+  payment: {
+    initiate: (data) => apiClient.post('/payment/initiate', data),
+  },
+
   // Generic methods for custom API calls
   get: (url, config) => apiClient.get(url, config),
   post: (url, data, config) => apiClient.post(url, data, config),

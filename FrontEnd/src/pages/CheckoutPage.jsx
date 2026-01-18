@@ -7,7 +7,6 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Footer from '../components/layout/Footer';
 import NavBar from '../components/layout/NavBar';
-import DemoPaymentModal from '../components/payment/DemoPaymentModal';
 
 function CheckoutPage() {
   const { cartItems, clearCart } = useCart();
@@ -19,8 +18,6 @@ function CheckoutPage() {
   const [shippingAddress, setShippingAddress] = useState('');
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [pendingOrderId, setPendingOrderId] = useState(null);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.08;
@@ -70,18 +67,44 @@ function CheckoutPage() {
       const response = await api.orders.create(orderData);
       console.log('Order response:', response);
 
-      // Response is already unwrapped by interceptor, check if success exists at root level
-      const orderResponse = response.data ? response : { data: response };
-      
-      if (orderResponse.data?.success || orderResponse.success) {
-        const orderId = orderResponse.data?.data?.id || orderResponse.data?.id;
-        console.log('Order created successfully with ID:', orderId);
+      // Extract order data - response structure: { success, message, data: order }
+      if (response.success && response.data) {
+        const order = response.data;
+        const orderId = order.id;
+        console.log('Order created successfully with ID:', orderId, 'Order:', order);
         
-        // If payment method is online, show demo payment modal
+        // If payment method is online, initiate SSLCommerz payment
         if (paymentMethod === 'online') {
-          setPendingOrderId(orderId);
-          setShowPaymentModal(true);
-          setLoading(false);
+          try {
+            console.log('Initiating SSLCommerz payment for order:', orderId);
+            const paymentResponse = await api.payment.initiate({
+              order_id: orderId,
+            });
+
+            console.log('Payment initiation response:', paymentResponse);
+
+            // apiClient interceptor already unwraps response.data, so paymentResponse is the direct data
+            // Backend returns: { success: true, message: '...', data: { payment_url: '...', transaction_id: '...' } }
+            
+            if (paymentResponse.success && paymentResponse.data?.payment_url) {
+              const paymentUrl = paymentResponse.data.payment_url;
+              console.log('Redirecting to SSLCommerz gateway:', paymentUrl);
+              // Redirect to SSLCommerz payment gateway
+              window.location.href = paymentUrl;
+              return; // Don't clear cart yet, wait for payment success
+            } else {
+              console.error('No payment URL in response:', paymentResponse);
+              setError('Failed to initiate online payment. Please try again.');
+              setLoading(false);
+              return;
+            }
+          } catch (paymentErr) {
+            console.error('Payment initiation error:', paymentErr);
+            console.error('Error details:', paymentErr.message, paymentErr.data);
+            setError(paymentErr.message || 'Failed to initiate online payment. Please try again or select Cash on Delivery.');
+            setLoading(false);
+            return;
+          }
         } else {
           // Cash on Delivery - clear cart and redirect
           clearCart();
@@ -91,41 +114,21 @@ function CheckoutPage() {
       }
     } catch (err) {
       console.error('Order creation failed:', err);
-      console.error('Error details:', err);
-      const errorMsg = err.message || err.response?.data?.message || 'Failed to place order';
-      setError(errorMsg);
-      setLoading(false);
+      
+      // Handle different error types
+      if (err.response?.data?.error_type === 'insufficient_stock') {
+        const errorData = err.response.data;
+        setError(`Sorry! ${errorData.message || 'Insufficient stock'}. Please update your cart.`);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError(err.response?.data?.message || 'Failed to place order. Please try again.');
+      }
     } finally {
       if (paymentMethod !== 'online') {
         setLoading(false);
       }
     }
-  };
-
-  const handlePaymentSuccess = async () => {
-    try {
-      // For demo payment, we'll just clear cart and redirect
-      // In production, you would call a payment confirmation endpoint
-      // For now, admin can manually update payment status
-      
-      // Clear cart and redirect
-      clearCart();
-      setShowPaymentModal(false);
-      navigate('/payment-success?order_id=' + pendingOrderId);
-    } catch (err) {
-      console.error('Failed to process payment:', err);
-      setError('Payment processed. Redirecting...');
-      // Still redirect even if there's an error
-      clearCart();
-      setShowPaymentModal(false);
-      navigate('/payment-success?order_id=' + pendingOrderId);
-    }
-  };
-
-  const handlePaymentCancel = () => {
-    setShowPaymentModal(false);
-    setPendingOrderId(null);
-    setError('Payment cancelled. You can try again or select Cash on Delivery.');
   };
 
   return (
@@ -214,12 +217,12 @@ function CheckoutPage() {
                       checked={paymentMethod === 'online'}
                       onChange={() => setPaymentMethod('online')}
                     />
-                    Online Payment (Demo)
+                    Online Payment (SSLCommerz)
                   </label>
                 </div>
                 {paymentMethod === 'online' && (
                   <div className="mt-2 p-3 bg-blue-50 text-sm text-blue-800 rounded-lg">
-                    You will be shown a demo payment gateway to complete your payment.
+                    You will be redirected to SSLCommerz payment gateway to complete your payment securely.
                   </div>
                 )}
               </div>
@@ -240,15 +243,6 @@ function CheckoutPage() {
         </div>
       </div>
       <Footer />
-      
-      {/* Demo Payment Modal */}
-      <DemoPaymentModal
-        isOpen={showPaymentModal}
-        onClose={handlePaymentCancel}
-        onSuccess={handlePaymentSuccess}
-        amount={total}
-        orderDetails={{ orderId: pendingOrderId }}
-      />
     </div>
   );
 }
