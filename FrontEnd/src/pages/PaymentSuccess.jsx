@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
+import { useCart } from '../contexts/CartContext';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { clearCart } = useCart();
   const [countdown, setCountdown] = useState(5);
   const orderNumber = searchParams.get('order');
 
   useEffect(() => {
+    // Clear cart when payment is successful
+    clearCart();
+    
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -21,7 +26,7 @@ export default function PaymentSuccess() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [navigate, clearCart]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

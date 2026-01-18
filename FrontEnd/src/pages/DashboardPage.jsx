@@ -86,6 +86,7 @@ function DashboardPage() {
       color: 'text-amber-700',
       bgColor: 'bg-amber-100',
     },
+    
   ];
 
   const topProductsColumns = [
