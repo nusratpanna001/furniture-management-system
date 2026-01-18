@@ -12,10 +12,10 @@ class CheckRole
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
-     * @param  string  $role
+     * @param  string|array  $role
      * @return mixed
      */
-    public function handle(Request $request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
         if (!$request->user()) {
             return response()->json([
@@ -24,7 +24,13 @@ class CheckRole
             ], 401);
         }
 
-        if ($request->user()->role !== $role) {
+        // If no roles specified, allow any authenticated user
+        if (empty($roles)) {
+            return $next($request);
+        }
+
+        // Check if user has any of the required roles
+        if (!in_array($request->user()->role, $roles)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Forbidden. You do not have permission to access this resource.'

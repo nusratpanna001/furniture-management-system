@@ -72,6 +72,13 @@ class OrderController extends Controller
     // Create order (User)
     public function store(Request $request)
     {
+        // Log incoming request
+        \Log::info('Order creation attempt', [
+            'user_id' => $request->user() ? $request->user()->id : 'no user',
+            'items' => $request->items,
+            'payment_method' => $request->payment_method,
+        ]);
+
         $validator = Validator::make($request->all(), [
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -84,8 +91,10 @@ class OrderController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Order validation failed', ['errors' => $validator->errors()]);
             return response()->json([
                 'success' => false,
+                'message' => 'Validation failed',
                 'errors' => $validator->errors(),
             ], 422);
         }
@@ -104,7 +113,21 @@ class OrderController extends Controller
                 
                 // Check stock
                 if ($product->stock < $item['quantity']) {
-                    throw new \Exception("Insufficient stock for product: {$product->name}");
+                    \Log::warning('Insufficient stock', [
+                        'product' => $product->name,
+                        'requested' => $item['quantity'],
+                        'available' => $product->stock
+                    ]);
+                    
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Insufficient stock for {$product->name}. Only {$product->stock} available.",
+                        'error_type' => 'insufficient_stock',
+                        'product_id' => $product->id,
+                        'available_stock' => $product->stock,
+                        'requested_quantity' => $item['quantity']
+                    ], 400);
                 }
 
                 $itemSubtotal = $product->price * $item['quantity'];
@@ -159,6 +182,10 @@ class OrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Order creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
