@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Heart, User, HelpCircle, ShoppingBag, Star, Phone, Mail, MapPin, Edit3, Settings, ShoppingCart } from 'lucide-react';
+import { Package, Heart, User, HelpCircle, ShoppingBag, Star, Phone, Mail, MapPin, Edit3, Settings, ShoppingCart, Printer } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
@@ -273,11 +273,19 @@ function UserDashboardPage() {
                 </div>
 
                 {/* Order Summary */}
-                <div className="text-right md:text-right flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end">
+                <div className="text-right md:text-right flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end gap-2">
                   <p className="font-bold text-xl text-amber-700 mb-2">৳{Math.round(order.total)}</p>
-                  <Link to={`/user/orders/${order.id}`}>
-                    <Button size="sm">View Details</Button>
-                  </Link>
+                  <div className="flex gap-2">
+                    <Link to={`/user/orders/${order.id}`}>
+                      <Button size="sm">View Details</Button>
+                    </Link>
+                    <Link to={`/user/orders/${order.id}?print=true`}>
+                      <Button size="sm" variant="outline" className="flex items-center gap-1">
+                        <Printer size={14} />
+                        Print
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </Card>

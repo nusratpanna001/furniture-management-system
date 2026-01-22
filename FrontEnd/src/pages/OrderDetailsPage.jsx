@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Package, Truck, CheckCircle, XCircle, Printer } from 'lucide-react';
+import { useReactToPrint } from 'react-to-print';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import StatusPill from '../components/order/StatusPill';
@@ -10,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/apiClient';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/constants';
+import InvoicePrint from '../components/invoice/InvoicePrint';
 
 function OrderDetailsPage() {
   const { id } = useParams();
@@ -19,10 +21,43 @@ function OrderDetailsPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const { success, error } = useToast();
+  const invoiceRef = useRef(null);
 
   useEffect(() => {
     loadOrder();
   }, [id]);
+
+  const reactToPrintContent = useCallback(() => {
+    return invoiceRef.current;
+  }, []);
+
+  const handlePrint = useReactToPrint({
+    contentRef: invoiceRef,
+    documentTitle: `Invoice-${order?.order_number || order?.id}`,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 20mm;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    `,
+  });
+
+  useEffect(() => {
+    // Auto-print if URL has ?print=true
+    const params = new URLSearchParams(location.search);
+    if (params.get('print') === 'true' && order && !loading && handlePrint) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        handlePrint();
+      }, 1000);
+    }
+  }, [order, loading, location.search, handlePrint]);
 
   const loadOrder = async () => {
     setLoading(true);
@@ -155,7 +190,17 @@ function OrderDetailsPage() {
             <p className="text-gray-600">{formatDate(order.createdAt, 'long')}</p>
           </div>
         </div>
-        <StatusPill status={order.status} />
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            onClick={handlePrint}
+            icon={<Printer size={18} />}
+            className="flex items-center gap-2"
+          >
+            Print Invoice
+          </Button>
+          <StatusPill status={order.status} />
+        </div>
       </div>
 
       {/* Timeline */}
@@ -282,6 +327,11 @@ function OrderDetailsPage() {
           </div>
         </div>
       </Card>
+      
+      {/* Hidden Invoice Component for Printing */}
+      <div style={{ display: 'none' }}>
+        <InvoicePrint ref={invoiceRef} order={order} />
+      </div>
     </div>
   );
 }

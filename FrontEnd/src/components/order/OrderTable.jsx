@@ -1,4 +1,4 @@
-import { Eye, MoreVertical } from 'lucide-react';
+import { Eye, MoreVertical, Printer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import Table from '../ui/Table';
@@ -105,6 +105,14 @@ function OrderTable({ orders, loading, onStatusChange }) {
             onClick={() => navigate(`/orders/${row.id}`)}
           >
             View
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate(`/orders/${row.id}?print=true`)}
+            className="flex items-center gap-1"
+          >
+            <Printer size={14} />
           </Button>
         </div>
       ),

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Filter } from 'lucide-react';
+import { Filter, Printer } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import OrderTable from '../components/order/OrderTable';
 import OrderForm from '../components/order/OrderForm';
 import Modal from '../components/ui/Modal';
@@ -11,6 +12,7 @@ import api from '../lib/apiClient';
 import { ORDER_STATUS } from '../lib/constants';
 
 function OrdersPage() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(false);
