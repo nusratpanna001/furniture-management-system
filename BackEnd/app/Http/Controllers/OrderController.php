@@ -243,10 +243,57 @@ class OrderController extends Controller
         ]);
     }
 
-    // Cancel order
+    // Cancel order (Admin can cancel any order including delivered)
     public function cancel($id)
     {
-        $order = Order::findOrFail($id);
+        $order = Order::with('items')->findOrFail($id);
+
+        if ($order->status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order is already cancelled',
+            ], 400);
+        }
+
+        // Restore stock
+        foreach ($order->items as $item) {
+            $product = Products::find($item->product_id);
+            if ($product) {
+                $product->stock += $item->quantity;
+                $product->save();
+            }
+        }
+
+        $order->status = 'cancelled';
+        $order->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order cancelled successfully',
+            'data' => $order,
+        ]);
+    }
+
+    // Cancel order by user (User can only cancel their own order)
+    public function cancelUserOrder(Request $request, $id)
+    {
+        $user = $request->user();
+        $order = Order::with('items')->findOrFail($id);
+
+        // Check if order belongs to user
+        if ($order->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access',
+            ], 403);
+        }
+
+        if ($order->status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order is already cancelled',
+            ], 400);
+        }
 
         if ($order->status === 'delivered') {
             return response()->json([

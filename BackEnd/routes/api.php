@@ -109,6 +109,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/user/orders', [OrderController::class, 'getUserOrders']);
         Route::get('/user/orders/{id}', [OrderController::class, 'show']);
+        Route::post('/user/orders/{id}/cancel', [OrderController::class, 'cancelUserOrder']);
         
         // Payment Initiation Route (Protected - User must be logged in)
         Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment']);

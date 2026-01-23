@@ -97,6 +97,7 @@ export const api = {
     create: (data) => apiClient.post('/orders', data),
     getUserOrders: () => apiClient.get('/user/orders'),
     getUserOrder: (id) => apiClient.get(`/user/orders/${id}`),
+    cancelUserOrder: (id) => apiClient.post(`/user/orders/${id}/cancel`),
   },
 
   // Suppliers

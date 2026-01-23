@@ -112,9 +112,20 @@ function OrderDetailsPage() {
 
   const updateStatus = async (newStatus) => {
     try {
-      await api.orders.updateStatus(order.id, newStatus);
+      // Check if this is a user route
+      const isUserRoute = location.pathname.startsWith('/user/');
+      
+      if (isUserRoute && newStatus === ORDER_STATUS.CANCELLED) {
+        // User cancelling their own order
+        await api.orders.cancelUserOrder(order.id);
+      } else {
+        // Admin updating order status
+        await api.orders.updateStatus(order.id, newStatus);
+      }
+      
       setOrder({ ...order, status: newStatus });
       success(`Order status updated to ${newStatus}`);
+      await loadOrder(); // Reload to get fresh data
     } catch (err) {
       console.error('Failed to update status:', err);
       error('Failed to update order status');
@@ -278,34 +289,114 @@ function OrderDetailsPage() {
           </div>
         </Card>
 
-        {/* Actions */}
+        {/* Actions - Show for both admin and regular users */}
         <Card title="Quick Actions">
           <div className="space-y-3">
-            {order.status === ORDER_STATUS.PENDING && (
-              <Button
-                className="w-full"
-                onClick={() => updateStatus(ORDER_STATUS.IN_PROGRESS)}
-              >
-                Mark as In Progress
-              </Button>
-            )}
-            {order.status === ORDER_STATUS.IN_PROGRESS && (
-              <Button
-                className="w-full"
-                variant="success"
-                onClick={() => updateStatus(ORDER_STATUS.DELIVERED)}
-              >
-                Mark as Delivered
-              </Button>
-            )}
-            {order.status !== ORDER_STATUS.CANCELLED && order.status !== ORDER_STATUS.DELIVERED && (
-              <Button
-                className="w-full"
-                variant="danger"
-                onClick={() => updateStatus(ORDER_STATUS.CANCELLED)}
-              >
-                Cancel Order
-              </Button>
+            {user?.role === 'admin' ? (
+              // Admin-specific actions
+              <>
+                {order.status === ORDER_STATUS.PENDING && (
+                  <>
+                    <Button
+                      className="w-full"
+                      onClick={() => updateStatus(ORDER_STATUS.IN_PROGRESS)}
+                    >
+                      Mark as In Progress
+                    </Button>
+                    <Button
+                      className="w-full"
+                      variant="danger"
+                      onClick={() => updateStatus(ORDER_STATUS.CANCELLED)}
+                    >
+                      Cancel Order
+                    </Button>
+                  </>
+                )}
+                {order.status === ORDER_STATUS.IN_PROGRESS && (
+                  <>
+                    <Button
+                      className="w-full"
+                      variant="success"
+                      onClick={() => updateStatus(ORDER_STATUS.DELIVERED)}
+                    >
+                      Mark as Delivered
+                    </Button>
+                    <Button
+                      className="w-full"
+                      variant="danger"
+                      onClick={() => updateStatus(ORDER_STATUS.CANCELLED)}
+                    >
+                      Cancel Order
+                    </Button>
+                  </>
+                )}
+                {order.status === ORDER_STATUS.DELIVERED && (
+                  <>
+                    <div className="text-center py-3 mb-3">
+                      <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-2">
+                        <CheckCircle className="text-green-600" size={32} />
+                      </div>
+                      <p className="text-lg font-semibold text-gray-900 mb-1">Order Delivered</p>
+                      <p className="text-sm text-gray-600">This order has been successfully delivered</p>
+                    </div>
+                    <Button
+                      className="w-full"
+                      variant="danger"
+                      onClick={() => updateStatus(ORDER_STATUS.CANCELLED)}
+                    >
+                      Cancel Order
+                    </Button>
+                  </>
+                )}
+                {order.status === ORDER_STATUS.CANCELLED && (
+                  <div className="text-center py-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-3">
+                      <XCircle className="text-red-600" size={32} />
+                    </div>
+                    <p className="text-lg font-semibold text-gray-900 mb-1">Order Cancelled</p>
+                    <p className="text-sm text-gray-600">This order has been cancelled</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              // User-specific actions
+              <>
+                {order.status !== ORDER_STATUS.CANCELLED && order.status !== ORDER_STATUS.DELIVERED && (
+                  <Button
+                    className="w-full"
+                    variant="danger"
+                    onClick={() => updateStatus(ORDER_STATUS.CANCELLED)}
+                  >
+                    Cancel Order
+                  </Button>
+                )}
+                {order.status === ORDER_STATUS.DELIVERED && (
+                  <>
+                    <div className="text-center py-3">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
+                        <CheckCircle className="text-green-600" size={24} />
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900">Order Delivered</p>
+                    </div>
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      onClick={() => navigate('/products')}
+                    >
+                      Order Again
+                    </Button>
+                  </>
+                )}
+                {order.status === ORDER_STATUS.CANCELLED && (
+                  <div className="text-center py-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-2">
+                      <XCircle className="text-red-600" size={24} />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 mb-1">Order Cancelled</p>
+                    <p className="text-xs text-gray-600">This order has been cancelled</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </Card>
