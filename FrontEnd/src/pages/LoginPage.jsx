@@ -25,7 +25,7 @@ function LoginPage() {
   useEffect(() => {
     if (user) {
       if (user.role === "admin") navigate("/dashboard");
-      else if (user.role === "user") navigate("/");
+      else navigate("/"); // All other users go to landing page
     }
   }, [user, navigate]);
 

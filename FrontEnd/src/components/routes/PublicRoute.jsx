@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 function PublicRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -13,9 +13,12 @@ function PublicRoute({ children }) {
     );
   }
 
-  // Redirect to dashboard if already authenticated
+  // Redirect to appropriate page if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    if (user?.role === 'admin') {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return <Navigate to="/" replace />; // Regular users go to landing page
   }
 
   return children;

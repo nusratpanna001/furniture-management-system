@@ -164,28 +164,6 @@ function AboutUsPage() {
 
       {/* Team Section removed as requested. */}
 
-      {/* Call to Action */}
-      <section className="py-16 md:py-20 px-6 md:px-10 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Ready to Transform Your Home?</h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Discover our extensive collection of premium furniture and start creating the home of your dreams today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/">
-              <Button className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 shadow-md hover:shadow-lg transition-all duration-300">
-                Explore Products
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline" className="border-2 border-amber-700 text-amber-700 hover:bg-amber-50">
-                Get Started
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <Footer />
     </div>

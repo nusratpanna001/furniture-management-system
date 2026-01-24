@@ -6,7 +6,7 @@ const PublicRoute = ({ children }) => {
 
   if (user) {
     if (user.role === "admin") return <Navigate to="/dashboard" replace />;
-    if (user.role === "user") return <Navigate to="/user-dashboard" replace />;
+    return <Navigate to="/" replace />; // All other users go to landing page
   }
 
   return children;

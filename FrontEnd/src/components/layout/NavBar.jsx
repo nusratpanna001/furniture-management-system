@@ -22,7 +22,7 @@ export default function NavBar() {
         if (hasRole('admin')) {
           navigate('/dashboard');
         } else {
-          navigate('/user-dashboard');
+          navigate('/user-dashboard'); // Regular users go to user dashboard
         }
       } else {
         // If not logged in, go to login page
