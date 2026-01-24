@@ -211,7 +211,7 @@ function DashboardPage() {
       {/* Top Selling Products and Low Stock Alert stacked */}
       <div className="space-y-6">
         <Card title="Top Selling Products">
-          <Table columns={topProductsColumns} data={dashboardData?.topProducts || []} />
+          <Table columns={topProductsColumns} data={dashboardData?.topProducts || []} pagination={false} />
         </Card>
         
       </div>
@@ -221,7 +221,7 @@ function DashboardPage() {
       
       <div className="space-y-6">
         <Card title="Low Stock Alert">
-          <Table columns={lowStockColumns} data={dashboardData?.lowStockProducts || []} />
+          <Table columns={lowStockColumns} data={dashboardData?.lowStockProducts || []} pagination={false} />
         </Card>
 
       </div>
