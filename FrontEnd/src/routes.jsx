@@ -14,6 +14,7 @@ import SettingsPage from "./pages/SettingsPage";
 
 // User pages
 import UserDashboardPage from "./pages/UserDashboardPage";
+import WishlistPage from "./pages/WishlistPage";
 
 // Public pages
 import LandingPage from "./pages/LandingPage";
@@ -108,6 +109,11 @@ function AppRoutes() {
       <Route path="/user-dashboard" element={
         <ProtectedRoute requiredRole="user">
           <AppLayout><UserDashboardPage /></AppLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/wishlist" element={
+        <ProtectedRoute requiredRole="user">
+          <AppLayout><WishlistPage /></AppLayout>
         </ProtectedRoute>
       } />
       <Route path="/user/orders/:id" element={

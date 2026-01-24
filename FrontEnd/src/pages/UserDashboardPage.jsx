@@ -529,27 +529,6 @@ function UserDashboardPage() {
           </div>
         </Card>
       </div>
-
-      <Card title="Frequently Asked Questions">
-        <div className="space-y-4">
-          <div className="border-b pb-4">
-            <h4 className="font-medium mb-2">How long does delivery take?</h4>
-            <p className="text-gray-600 text-sm">Standard delivery takes 5-7 business days. Express delivery is available for 2-3 business days.</p>
-          </div>
-          <div className="border-b pb-4">
-            <h4 className="font-medium mb-2">What is your return policy?</h4>
-            <p className="text-gray-600 text-sm">We offer a 30-day return policy for unused items in original condition. Return shipping is free for defective items.</p>
-          </div>
-          <div className="border-b pb-4">
-            <h4 className="font-medium mb-2">Do you offer assembly service?</h4>
-            <p className="text-gray-600 text-sm">Yes, we provide professional assembly service for an additional fee. This can be selected during checkout.</p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-2">How can I track my order?</h4>
-            <p className="text-gray-600 text-sm">You can track your order in the 'My Orders' section or use the tracking number sent to your email.</p>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 
