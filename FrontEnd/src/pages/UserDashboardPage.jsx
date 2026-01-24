@@ -450,34 +450,6 @@ function UserDashboardPage() {
           </div>
         </Card>
       </div>
-
-      <Card title="Account Settings">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between py-3 border-b">
-            <div>
-              <p className="font-medium">Email Notifications</p>
-              <p className="text-sm text-gray-600">Receive updates about your orders</p>
-            </div>
-            <Button size="sm" variant="outline">Configure</Button>
-          </div>
-          <div className="flex items-center justify-between py-3 border-b">
-            <div>
-              <p className="font-medium">Password</p>
-              <p className="text-sm text-gray-600">Change your password</p>
-            </div>
-            <Button size="sm" variant="outline">Change</Button>
-          </div>
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <p className="font-medium">Delete Account</p>
-              <p className="text-sm text-gray-600">Permanently delete your account</p>
-            </div>
-            <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-              Delete
-            </Button>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 
@@ -485,7 +457,7 @@ function UserDashboardPage() {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Support Center</h2>
       
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-1 gap-6">
         <Card title="Contact Support">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -504,28 +476,7 @@ function UserDashboardPage() {
                 <p className="text-sm text-gray-500">Response within 24 hours</p>
               </div>
             </div>
-            <Button className="w-full">Contact Support</Button>
-          </div>
-        </Card>
-
-        <Card title="Quick Help">
-          <div className="space-y-3">
-            <Link to="#" className="block p-3 rounded-md hover:bg-gray-50 border">
-              <h4 className="font-medium">Order Status</h4>
-              <p className="text-sm text-gray-600">Track your orders and deliveries</p>
-            </Link>
-            <Link to="#" className="block p-3 rounded-md hover:bg-gray-50 border">
-              <h4 className="font-medium">Return Policy</h4>
-              <p className="text-sm text-gray-600">Learn about our return process</p>
-            </Link>
-            <Link to="#" className="block p-3 rounded-md hover:bg-gray-50 border">
-              <h4 className="font-medium">Payment Issues</h4>
-              <p className="text-sm text-gray-600">Resolve payment problems</p>
-            </Link>
-            <Link to="#" className="block p-3 rounded-md hover:bg-gray-50 border">
-              <h4 className="font-medium">Product Care</h4>
-              <p className="text-sm text-gray-600">Furniture maintenance tips</p>
-            </Link>
+            <Button className="w-full" onClick={() => window.location.href = '/contact-us'}>Contact Support</Button>
           </div>
         </Card>
       </div>
