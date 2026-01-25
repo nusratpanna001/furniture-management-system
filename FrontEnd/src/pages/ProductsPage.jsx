@@ -107,9 +107,7 @@ function ProductsPage() {
     { value: 'chair', label: 'Chair' },
     { value: 'sofa', label: 'Sofa' },
     { value: 'bedsidetable', label: 'Bed Side Table' },
-    { value: 'showcase', label: 'Showcase' },
     { value: 'table', label: 'Table' },
-    { value: 'diningtable', label: 'Dining Table' }
   ];
 
   const priceRanges = [
